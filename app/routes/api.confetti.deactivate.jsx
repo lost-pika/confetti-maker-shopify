@@ -8,75 +8,41 @@ export const action = async ({ request }) => {
 
     const shopDomain = session.shop;
 
-    // -------------------------------
-    // Mark inactive in DB
-    // -------------------------------
     await prisma.confettiConfig.updateMany({
       where: { id: confettiId, shopDomain },
       data: { active: false },
     });
 
-    // -------------------------------
-    // Get Shopify Shop GID (FIXED)
-    // -------------------------------
-    const shopInfoRes = await admin.graphql(`
-      query {
-        shop { id }
-      }
-    `);
-
+    const shopInfoRes = await admin.graphql(`{ shop { id } }`);
     const shopInfo = await shopInfoRes.json();
     const shopGid = shopInfo?.data?.shop?.id;
-
     if (!shopGid) throw new Error("Shop GID not found");
 
-    // -------------------------------
-    // Clear metafields (EMPTY STRING JSON)
-    // -------------------------------
-    const response = await admin.graphql(
-  `
-  mutation ClearConfettiMetafields(
-    $shopId: ID!,
-    $emptyConfig: String!
-  ) {
-    metafieldsSet(metafields: [
-      {
-        ownerId: $shopId
-        namespace: "confetti_maker"
-        key: "active_config"
-        type: "json"
-        value: $emptyConfig
-      },
-      {
-        ownerId: $shopId
-        namespace: "confetti_maker"
-        key: "trigger_event"
-        type: "single_line_text_field"
-        value: "none"
+    await admin.graphql(
+      `
+      mutation ClearConfetti($shopId: ID!) {
+        metafieldsSet(metafields: [
+          {
+            ownerId: $shopId
+            namespace: "confetti_maker"
+            key: "active_config"
+            type: "json"
+            value: "{}"
+          },
+          {
+            ownerId: $shopId
+            namespace: "confetti_maker"
+            key: "trigger_event"
+            type: "single_line_text_field"
+            value: "none"
+          }
+        ]) {
+          userErrors { message }
+        }
       }
-    ]) {
-      userErrors { field message }
-    }
-  }
-  `,
-  {
-    variables: {
-      shopId: shopGid,
-      emptyConfig: "{}",
-    },
-  }
-);
-
-
-    const result = await response.json();
-    const errors = result.data?.metafieldsSet?.userErrors || [];
-
-    if (errors.length) {
-      console.error(errors);
-      return new Response(JSON.stringify({ ok: false, errors }), {
-        status: 500,
-      });
-    }
+      `,
+      { variables: { shopId: shopGid } }
+    );
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err) {

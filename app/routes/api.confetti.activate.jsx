@@ -17,23 +17,15 @@ export const action = async ({ request }) => {
 
     const shopDomain = session.shop;
 
-    // -------------------------------
-    // Normalize trigger event
-    // -------------------------------
     const triggerEventValue =
       typeof triggerEvent === "string"
         ? triggerEvent
         : triggerEvent?.event || "page_load";
 
-    // -------------------------------
-    // Upsert Shop
-    // -------------------------------
+    // 🔒 Ensure single active config
     const shop = await prisma.shop.upsert({
       where: { shopifyShopId: session.id },
-      update: {
-        name: shopDomain,
-        accessToken: session.accessToken,
-      },
+      update: { name: shopDomain, accessToken: session.accessToken },
       create: {
         shopifyShopId: session.id,
         name: shopDomain,
@@ -41,18 +33,11 @@ export const action = async ({ request }) => {
       },
     });
 
-    // -------------------------------
-    // Deactivate ALL previous configs
-    // (only one active allowed)
-    // -------------------------------
     await prisma.confettiConfig.updateMany({
       where: { shopId: shop.id },
       data: { active: false },
     });
 
-    // -------------------------------
-    // Upsert active config
-    // -------------------------------
     const record = await prisma.confettiConfig.upsert({
       where: { id: confettiId },
       update: {
@@ -76,34 +61,16 @@ export const action = async ({ request }) => {
       },
     });
 
-    // -------------------------------
-    // Get Shopify Shop GID (CORRECT)
-    // -------------------------------
-    const shopInfoRes = await admin.graphql(`
-      query {
-        shop { id }
-      }
-    `);
-
+    const shopInfoRes = await admin.graphql(`{ shop { id } }`);
     const shopInfo = await shopInfoRes.json();
     const shopGid = shopInfo?.data?.shop?.id;
-
     if (!shopGid) throw new Error("Shop GID not found");
 
-    // -------------------------------
-    // Write metafields (JSON AS STRING)
-    // -------------------------------
-    const configValueString = JSON.stringify({
-      id: record.id,
-      type: record.type,
-      ...config,
-    });
-
-    const metafieldRes = await admin.graphql(
+    await admin.graphql(
       `
-      mutation SetConfettiMetafields(
+      mutation SetConfetti(
         $shopId: ID!,
-        $configValue: String!,
+        $config: String!,
         $trigger: String!
       ) {
         metafieldsSet(metafields: [
@@ -112,7 +79,7 @@ export const action = async ({ request }) => {
             namespace: "confetti_maker"
             key: "active_config"
             type: "json"
-            value: $configValue
+            value: $config
           },
           {
             ownerId: $shopId
@@ -122,28 +89,22 @@ export const action = async ({ request }) => {
             value: $trigger
           }
         ]) {
-          userErrors { field message }
+          userErrors { message }
         }
       }
       `,
       {
         variables: {
           shopId: shopGid,
-          configValue: configValueString,
+          config: JSON.stringify({
+            id: record.id,
+            type: record.type,
+            ...config,
+          }),
           trigger: triggerEventValue,
         },
       }
     );
-
-    const result = await metafieldRes.json();
-    const errors = result.data?.metafieldsSet?.userErrors || [];
-
-    if (errors.length) {
-      console.error(errors);
-      return new Response(JSON.stringify({ ok: false, errors }), {
-        status: 500,
-      });
-    }
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err) {

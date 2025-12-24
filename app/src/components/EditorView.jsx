@@ -1,0 +1,391 @@
+// app/src/components/EditorView.jsx
+import React from "react";
+import { ArrowLeft, Globe, Ticket, Sparkles, XCircle, Plus } from "lucide-react";
+import { SHAPE_OPTIONS, BURST_TYPES } from "../constants/confettiConstants";
+
+export default function EditorView({
+   activeConfig,
+  setActiveConfig,
+  fire,
+  saveDraft,
+  setView,
+  savedConfetti,
+  savedVouchers,
+  onActivate,
+  onDeactivate,
+}) {
+  if (!activeConfig) return null;
+
+  const isVoucher = activeConfig.type === "voucher";
+  const isActive =
+    activeConfig.type === "confetti"
+      ? savedConfetti.find((i) => i.id === activeConfig.id)?.isActive === true
+      : savedVouchers.find((i) => i.id === activeConfig.id)?.isActive === true;
+
+  const handleTest = () => {
+    // fire() was passed from ConfettiApp → you can actually
+    // wire it to canvas-confetti here using activeConfig
+    if (typeof fire === "function") {
+      fire(activeConfig);
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">
+      {/* Settings panel */}
+      <aside className="w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden z-10 shadow-sm">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <button
+            onClick={() => setView("dashboard")}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h2 className="font-bold text-sm text-slate-900">Configuration</h2>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+          {/* General */}
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              General
+            </h3>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-600">Name</label>
+              <input
+                type="text"
+                value={activeConfig.title}
+                onChange={(e) =>
+                  setActiveConfig({ ...activeConfig, title: e.target.value })
+                }
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+              />
+            </div>
+
+            {isVoucher && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-600">
+                  Voucher Code
+                </label>
+                <input
+                  type="text"
+                  value={activeConfig.code}
+                  onChange={(e) =>
+                    setActiveConfig({ ...activeConfig, code: e.target.value })
+                  }
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm font-mono font-bold tracking-[0.1em] uppercase text-orange-600 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Burst type */}
+          <section className="space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Burst Type
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {BURST_TYPES.map((burst) => (
+                <button
+                  key={burst.id}
+                  onClick={() =>
+                    setActiveConfig({ ...activeConfig, burstType: burst.value })
+                  }
+                  className={`p-2.5 rounded-lg text-xs font-bold transition-all border ${
+                    activeConfig.burstType === burst.value
+                      ? "bg-orange-50 border-orange-500 text-orange-700"
+                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  {burst.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Shapes */}
+          {!isVoucher && (
+            <section className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                Shapes
+              </h3>
+              <div className="grid grid-cols-4 gap-2">
+                {SHAPE_OPTIONS.map((shape) => (
+                  <button
+                    key={shape.id}
+                    onClick={() => {
+                      const shapes = activeConfig.shapes || [];
+                      const newShapes = shapes.includes(shape.id)
+                        ? shapes.filter((s) => s !== shape.id)
+                        : [...shapes, shape.id];
+                      setActiveConfig({
+                        ...activeConfig,
+                        shapes: newShapes.length > 0 ? newShapes : ["circle"],
+                      });
+                    }}
+                    className={`p-3 rounded-lg transition-all border aspect-square flex items-center justify-center ${
+                      (activeConfig.shapes || []).includes(shape.id)
+                        ? "bg-pink-50 border-pink-500 text-pink-600"
+                        : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-400"
+                    }`}
+                    title={shape.label}
+                  >
+                    <shape.icon className="w-5 h-5" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Physics */}
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Physics
+            </h3>
+
+            {/* Gravity */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-600">
+                  Gravity
+                </label>
+                <span className="text-xs font-bold text-orange-500">
+                  {activeConfig.gravity.toFixed(1)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0.1}
+                max={3}
+                step={0.1}
+                value={activeConfig.gravity}
+                onChange={(e) =>
+                  setActiveConfig({
+                    ...activeConfig,
+                    gravity: parseFloat(e.target.value),
+                  })
+                }
+                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+              />
+            </div>
+
+            {/* Spread */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-600">
+                  Spread
+                </label>
+                <span className="text-xs font-bold text-orange-500">
+                  {activeConfig.spread}°
+                </span>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={360}
+                value={activeConfig.spread}
+                onChange={(e) =>
+                  setActiveConfig({
+                    ...activeConfig,
+                    spread: parseInt(e.target.value, 10),
+                  })
+                }
+                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+              />
+            </div>
+
+            {/* Particle count */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-600">
+                  Particle Count
+                </label>
+                <span className="text-xs font-bold text-orange-500">
+                  {activeConfig.particleCount}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={50}
+                max={500}
+                step={10}
+                value={activeConfig.particleCount}
+                onChange={(e) =>
+                  setActiveConfig({
+                    ...activeConfig,
+                    particleCount: parseInt(e.target.value, 10),
+                  })
+                }
+                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+              />
+            </div>
+          </section>
+
+          {/* Colors */}
+          <section className="space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Colors
+            </h3>
+            <div className="grid grid-cols-5 gap-3">
+              {(activeConfig.colors || []).map((color, i) => (
+                <div key={i} className="relative group">
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => {
+                      const next = [...(activeConfig.colors || [])];
+                      next[i] = e.target.value;
+                      setActiveConfig({ ...activeConfig, colors: next });
+                    }}
+                    className="w-full aspect-square rounded-lg border border-slate-200 cursor-pointer shadow-sm"
+                  />
+                  <button
+                    onClick={() => {
+                      const next = activeConfig.colors.filter(
+                        (_, idx) => idx !== i
+                      );
+                      setActiveConfig({
+                        ...activeConfig,
+                        colors: next.length > 0 ? next : ["#FFB396"],
+                      });
+                    }}
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-slate-200 hover:bg-red-500 text-slate-600 hover:text-white rounded-full text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() =>
+                  setActiveConfig({
+                    ...activeConfig,
+                    colors: [...(activeConfig.colors || []), "#FFB396"],
+                  })
+                }
+                className="aspect-square border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-orange-500 hover:border-orange-500 hover:bg-orange-50 transition-all flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </section>
+
+          {/* Test button */}
+          <button
+            onClick={handleTest}
+            className="w-full py-2.5 rounded-lg font-bold text-sm bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Test Confetti
+          </button>
+        </div>
+
+        <div className="px-6 py-4 border-t border-slate-100 space-y-3 bg-white">
+          <button
+            onClick={saveDraft}
+            className="w-full py-2.5 rounded-lg font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+          >
+            Save Draft
+          </button>
+          <button
+            onClick={() => setView("dashboard")}
+            className="w-full py-2.5 rounded-lg font-bold text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </aside>
+
+      {/* Preview */}
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#F1F5F9]">
+        <header className="flex items-center justify-between px-8 py-4 border-b border-slate-200 bg-white">
+          <h3 className="font-bold text-sm text-slate-900">Live Preview</h3>
+          <button
+  onClick={async () => {
+    if (isActive) {
+      await onDeactivate(activeConfig);
+    } else {
+      await onActivate(activeConfig);
+    }
+    setView("dashboard");
+  }}
+  className={`px-4 py-2 rounded-lg font-bold text-xs transition-colors flex items-center gap-2 ${
+    isActive
+      ? "bg-red-50 text-red-600 hover:bg-red-100"
+      : "bg-slate-900 text-white hover:bg-slate-800"
+  }`}
+>
+
+            {isActive ? (
+              <>
+                <XCircle size={14} /> Deactivate
+              </>
+            ) : (
+              <>
+                <Globe size={14} /> Activate on Store
+              </>
+            )}
+          </button>
+        </header>
+
+        {/* Preview card – use same structure you had before */}
+        <div className="flex-1 flex items-center justify-center p-12 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
+
+          <div className="relative z-10 flex flex-col items-center gap-8 text-center max-w-md w-full">
+            {isVoucher && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-10 py-12 w-full">
+                <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 mx-auto mb-4">
+                  <Ticket className="w-8 h-8" />
+                </div>
+                <h4 className="text-xl font-bold text-slate-900 mb-4">
+                  {activeConfig.title}
+                </h4>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl py-3 px-6 font-mono text-2xl font-bold tracking-[0.1em] text-slate-800">
+                  {activeConfig.code}
+                </div>
+              </div>
+            )}
+
+            {!isVoucher && (
+              <div className="relative bg-white rounded-2xl border border-slate-200 h-64 w-full flex items-center justify-center overflow-hidden shadow-lg">
+                <div className="absolute inset-0 opacity-40">
+                  {activeConfig.colors?.map((color, i) => (
+                    <div
+                      key={i}
+                      className="absolute rounded-full"
+                      style={{
+                        width: Math.random() * 80 + 30 + "px",
+                        height: Math.random() * 80 + 30 + "px",
+                        left: Math.random() * 100 + "%",
+                        top: Math.random() * 100 + "%",
+                        backgroundColor: color,
+                        filter: "blur(20px)",
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-slate-400 font-medium text-sm relative z-10 flex flex-col items-center gap-2">
+                  <Sparkles className="w-8 h-8 opacity-50" />
+                  Preview Area
+                </p>
+              </div>
+            )}
+
+            <div>
+              <button
+                onClick={handleTest}
+                className="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-pink-500 hover:bg-slate-800 transition-all shadow-lg active:scale-95 flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                {isVoucher ? "Reveal Voucher" : "Launch Confetti"}
+              </button>
+              <div className="mt-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Click to test
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

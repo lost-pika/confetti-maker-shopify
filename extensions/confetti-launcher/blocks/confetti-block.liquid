@@ -1,0 +1,117 @@
+<div
+  id="confetti-launcher-root"
+  data-confetti-config='{{ shop.metafields.confetti_maker.active_config.value | json }}'
+  data-trigger-event='{{ shop.metafields.confetti_maker.trigger_event.value }}'>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+(function () {
+  var root = document.getElementById('confetti-launcher-root');
+  if (!root || !window.confetti) return;
+
+  var rawConfig = root.getAttribute('data-confetti-config');
+  var triggerEvent = root.getAttribute('data-trigger-event') || 'page_load';
+
+  if (!rawConfig) return;
+
+  var config;
+  try {
+    config = JSON.parse(rawConfig);
+  } catch (e) {
+    console.error('Invalid confetti config JSON', e);
+    return;
+  }
+
+  function fireConfetti(cfg) {
+    var base = {
+      particleCount: cfg.particleCount || 150,
+      spread: cfg.spread || 70,
+      gravity: cfg.gravity ?? 1,
+      origin: cfg.origin || { x: 0.5, y: 0.6 },
+      colors: cfg.colors && cfg.colors.length ? cfg.colors : undefined,
+      shapes: cfg.shapes && cfg.shapes.length ? cfg.shapes : undefined
+    };
+
+    switch (cfg.burstType) {
+      case 'cannon':
+        window.confetti(Object.assign({}, base, {
+          angle: 60,
+          startVelocity: 60,
+          ticks: 150
+        }));
+        break;
+
+      case 'fireworks':
+        for (var i = 0; i < 3; i++) {
+          window.confetti(Object.assign({}, base, {
+            particleCount: Math.round(base.particleCount / 3),
+            startVelocity: 50,
+            spread: 80,
+            ticks: 250,
+            gravity: 0.9,
+            origin: {
+              x: 0.2 + 0.3 * i,
+              y: Math.random() * 0.4 + 0.1
+            }
+          }));
+        }
+        break;
+
+      case 'pride':
+        window.confetti(Object.assign({}, base, {
+          spread: 120,
+          startVelocity: 35,
+          scalar: 1.2,
+          ticks: 300,
+          gravity: 0.7
+        }));
+        break;
+
+      case 'snow':
+        window.confetti(Object.assign({}, base, {
+          particleCount: 250,
+          spread: 160,
+          gravity: 0.3,
+          startVelocity: 10,
+          scalar: 0.8,
+          ticks: 400,
+          drift: 0.6
+        }));
+        break;
+
+      default:
+        window.confetti(Object.assign({}, base, {
+          startVelocity: 45
+        }));
+    }
+  }
+
+  function shouldTrigger() {
+    switch (triggerEvent) {
+      case 'page_load':
+        return true;
+      case 'purchase_complete':
+        return window.location.pathname.includes('/thank_you');
+      case 'new_year':
+        var d = new Date();
+        return d.getMonth() === 0 && d.getDate() === 1;
+      default:
+        return false;
+    }
+  }
+
+  if (shouldTrigger()) {
+    fireConfetti(config);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Confetti Launcher",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

@@ -3,8 +3,14 @@ import prisma from "../db.server";
 
 export const action = async ({ request }) => {
   try {
+    // ─────────────────────────────
+    // 1️⃣ AUTHENTICATE
+    // ─────────────────────────────
     const { admin, session } = await authenticate.admin(request);
 
+    // ─────────────────────────────
+    // 2️⃣ PARSE BODY
+    // ─────────────────────────────
     let body;
     try {
       body = await request.json();
@@ -16,6 +22,7 @@ export const action = async ({ request }) => {
     }
 
     const { confettiId, config, triggerEvent } = body;
+
     if (!confettiId || !config) {
       return new Response(
         JSON.stringify({ ok: false, error: "Missing confettiId or config" }),
@@ -23,47 +30,85 @@ export const action = async ({ request }) => {
       );
     }
 
-    const shopDomain = session.shop;
+    // ─────────────────────────────
+    // 3️⃣ GET SHOP INFO FROM SHOPIFY (GID FIRST!)
+    // ─────────────────────────────
+    const shopRes = await admin.graphql(`
+      {
+        shop {
+          id
+          domain
+        }
+      }
+    `);
 
+    const shopJson = await shopRes.json();
+    const shopGid = shopJson?.data?.shop?.id;
+    const shopDomain = shopJson?.data?.shop?.domain;
+
+    if (!shopGid || !shopDomain) {
+      throw new Error("Failed to fetch shop info from Shopify");
+    }
+
+    // ─────────────────────────────
+    // 4️⃣ UPSERT SHOP (CORRECT UNIQUE KEY)
+    // ─────────────────────────────
     const shop = await prisma.shop.upsert({
-      where: { shopDomain },
-      update: { accessToken: session.accessToken },
+      where: { shopifyShopId: shopGid },
+      update: {
+        name: shopDomain,
+        accessToken: session.accessToken,
+      },
       create: {
-        shopDomain,
+        shopifyShopId: shopGid,
         name: shopDomain,
         accessToken: session.accessToken,
       },
     });
 
+    // ─────────────────────────────
+    // 5️⃣ DEACTIVATE OLD CONFETTI
+    // ─────────────────────────────
     await prisma.confettiConfig.updateMany({
       where: { shopId: shop.id },
       data: { active: false },
     });
 
+    // ─────────────────────────────
+    // 6️⃣ UPSERT ACTIVE CONFETTI
+    // ─────────────────────────────
+    const trigger =
+      typeof triggerEvent === "string"
+        ? triggerEvent
+        : triggerEvent?.event || "page_load";
+
     const record = await prisma.confettiConfig.upsert({
       where: { id: confettiId },
       update: {
         config,
-        triggerEvent,
+        triggerEvent: trigger,
         active: true,
       },
       create: {
         id: confettiId,
         config,
-        triggerEvent,
+        triggerEvent: trigger,
         active: true,
         shopId: shop.id,
         shopDomain,
       },
     });
 
-    const shopRes = await admin.graphql(`{ shop { id } }`);
-    const shopJson = await shopRes.json();
-    const shopGid = shopJson?.data?.shop?.id;
-    if (!shopGid) throw new Error("Shop GID not found");
-
+    // ─────────────────────────────
+    // 7️⃣ WRITE METAFIELDS (THEME EXTENSION USES THIS)
+    // ─────────────────────────────
     const metafieldRes = await admin.graphql(
-      `mutation SetConfetti($shopId: ID!, $config: String!, $trigger: String!) {
+      `
+      mutation SetConfetti(
+        $shopId: ID!,
+        $config: String!,
+        $trigger: String!
+      ) {
         metafieldsSet(metafields: [
           {
             ownerId: $shopId
@@ -82,22 +127,30 @@ export const action = async ({ request }) => {
         ]) {
           userErrors { message }
         }
-      }`,
+      }
+      `,
       {
         variables: {
           shopId: shopGid,
-          config: JSON.stringify(record.config),
-          trigger: triggerEvent || "page_load",
+          config: JSON.stringify({
+            id: record.id,
+            ...record.config,
+          }),
+          trigger,
         },
       }
     );
 
     const metafieldJson = await metafieldRes.json();
-    const errors = metafieldJson.data.metafieldsSet.userErrors;
+    const errors = metafieldJson?.data?.metafieldsSet?.userErrors || [];
+
     if (errors.length) {
-      throw new Error(errors.map(e => e.message).join(", "));
+      throw new Error(errors.map((e) => e.message).join(", "));
     }
 
+    // ─────────────────────────────
+    // ✅ SUCCESS
+    // ─────────────────────────────
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err) {
     console.error("Activate failed:", err);
@@ -107,4 +160,3 @@ export const action = async ({ request }) => {
     );
   }
 };
-

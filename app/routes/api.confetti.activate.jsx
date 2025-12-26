@@ -4,10 +4,18 @@ import prisma from "../db.server";
 export const action = async ({ request }) => {
   try {
     const { admin, session } = await authenticate.admin(request);
-    const body = await request.json();
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ ok: false, error: "Invalid JSON body" }),
+        { status: 400 }
+      );
+    }
 
     const { confettiId, config, triggerEvent } = body;
-
     if (!confettiId || !config) {
       return new Response(
         JSON.stringify({ ok: false, error: "Missing confettiId or config" }),
@@ -17,17 +25,11 @@ export const action = async ({ request }) => {
 
     const shopDomain = session.shop;
 
-    const triggerEventValue =
-      typeof triggerEvent === "string"
-        ? triggerEvent
-        : triggerEvent?.event || "page_load";
-
-    // 🔒 Ensure single active config
     const shop = await prisma.shop.upsert({
-      where: { shopifyShopId: session.id },
-      update: { name: shopDomain, accessToken: session.accessToken },
+      where: { shopDomain },
+      update: { accessToken: session.accessToken },
       create: {
-        shopifyShopId: session.id,
+        shopDomain,
         name: shopDomain,
         accessToken: session.accessToken,
       },
@@ -41,38 +43,27 @@ export const action = async ({ request }) => {
     const record = await prisma.confettiConfig.upsert({
       where: { id: confettiId },
       update: {
-        title: config.title,
-        type: config.type,
         config,
-        triggerEvent: triggerEventValue,
+        triggerEvent,
         active: true,
-        shopDomain,
-        shopId: shop.id,
       },
       create: {
         id: confettiId,
-        title: config.title,
-        type: config.type,
         config,
-        triggerEvent: triggerEventValue,
+        triggerEvent,
         active: true,
-        shopDomain,
         shopId: shop.id,
+        shopDomain,
       },
     });
 
-    const shopInfoRes = await admin.graphql(`{ shop { id } }`);
-    const shopInfo = await shopInfoRes.json();
-    const shopGid = shopInfo?.data?.shop?.id;
+    const shopRes = await admin.graphql(`{ shop { id } }`);
+    const shopJson = await shopRes.json();
+    const shopGid = shopJson?.data?.shop?.id;
     if (!shopGid) throw new Error("Shop GID not found");
 
-    await admin.graphql(
-      `
-      mutation SetConfetti(
-        $shopId: ID!,
-        $config: String!,
-        $trigger: String!
-      ) {
+    const metafieldRes = await admin.graphql(
+      `mutation SetConfetti($shopId: ID!, $config: String!, $trigger: String!) {
         metafieldsSet(metafields: [
           {
             ownerId: $shopId
@@ -91,20 +82,21 @@ export const action = async ({ request }) => {
         ]) {
           userErrors { message }
         }
-      }
-      `,
+      }`,
       {
         variables: {
           shopId: shopGid,
-          config: JSON.stringify({
-            id: record.id,
-            type: record.type,
-            ...config,
-          }),
-          trigger: triggerEventValue,
+          config: JSON.stringify(record.config),
+          trigger: triggerEvent || "page_load",
         },
       }
     );
+
+    const metafieldJson = await metafieldRes.json();
+    const errors = metafieldJson.data.metafieldsSet.userErrors;
+    if (errors.length) {
+      throw new Error(errors.map(e => e.message).join(", "));
+    }
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (err) {
@@ -115,3 +107,4 @@ export const action = async ({ request }) => {
     );
   }
 };
+

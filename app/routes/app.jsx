@@ -1,14 +1,12 @@
-// app/routes/app.jsx
-import { Outlet, useRouteError } from "react-router";
+import { Outlet, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
-  return {};
+  return null;
 };
-
 
 export default function App() {
   return (

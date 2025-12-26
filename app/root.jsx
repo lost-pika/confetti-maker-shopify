@@ -1,5 +1,5 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
-import './global.css'
+import "./global.css"; // ✅ correct for React Router + Vite
 
 export default function App() {
   return (

@@ -1,4 +1,4 @@
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
+// app/routes/app._index.jsx
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import "@shopify/polaris/build/esm/styles.css";
 
@@ -7,12 +7,10 @@ import { ShopProvider } from "../src/context/ShopContext";
 
 export default function AppIndex() {
   return (
-    <AppProvider>
-      <PolarisProvider i18n={{}}>
-        <ShopProvider>
-          <ConfettiApp />
-        </ShopProvider>
-      </PolarisProvider>
-    </AppProvider>
+    <PolarisProvider i18n={{}}>
+      <ShopProvider>
+        <ConfettiApp />
+      </ShopProvider>
+    </PolarisProvider>
   );
 }

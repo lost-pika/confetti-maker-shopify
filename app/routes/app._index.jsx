@@ -1,5 +1,5 @@
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
-import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react";
+import { AppBridgeProvider } from "@shopify/app-bridge-react";
 import "@shopify/polaris/build/esm/styles.css";
 
 import ConfettiApp from "../src/components/ConfettiApp";
@@ -8,19 +8,16 @@ import { ShopProvider } from "../src/context/ShopContext";
 export default function AppIndex() {
   const params = new URLSearchParams(window.location.search);
 
-  const appBridgeConfig = {
+  const config = {
     apiKey: import.meta.env.VITE_SHOPIFY_API_KEY,
     host: params.get("host"),
     forceRedirect: true,
   };
 
-  // 🔴 Without host → Shopify WILL show blank screen
-  if (!appBridgeConfig.host) {
-    return null;
-  }
+  if (!config.host) return null;
 
   return (
-    <AppBridgeProvider config={appBridgeConfig}>
+    <AppBridgeProvider config={config}>
       <PolarisProvider i18n={{}}>
         <ShopProvider>
           <ConfettiApp />

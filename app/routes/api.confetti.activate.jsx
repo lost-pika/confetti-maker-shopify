@@ -85,21 +85,28 @@ export const action = async ({ request }) => {
         : triggerEvent?.event || "page_load";
 
     const record = await prisma.confettiConfig.upsert({
-      where: { id: confettiId },
-      update: {
-        config,
-        triggerEvent: trigger,
-        active: true,
-      },
-      create: {
-        id: confettiId,
-        config,
-        triggerEvent: trigger,
-        active: true,
-        shopId: shop.id,
-        shopDomain,
-      },
-    });
+  where: { id: confettiId },
+
+  update: {
+    title: config.title,        // ✅ REQUIRED
+    type: config.type,          // ✅ STRONGLY recommended
+    config: config,
+    triggerEvent: triggerEvent,
+    active: true,
+  },
+
+  create: {
+    id: confettiId,
+    title: config.title,        // ✅ REQUIRED
+    type: config.type,          // ✅ REQUIRED if model has it
+    config: config,
+    triggerEvent: triggerEvent,
+    active: true,
+    shopId: shop.id,
+    shopDomain: shopDomain,
+  },
+});
+
 
     // ─────────────────────────────
     // 7️⃣ WRITE METAFIELDS (THEME EXTENSION USES THIS)

@@ -34,17 +34,19 @@ export const action = async ({ request }) => {
     // 3️⃣ GET SHOP INFO FROM SHOPIFY (GID FIRST!)
     // ─────────────────────────────
     const shopRes = await admin.graphql(`
-      {
-        shop {
-          id
-          domain
-        }
-      }
-    `);
+  {
+    shop {
+      id
+      myshopifyDomain
+    }
+  }
+`);
+
 
     const shopJson = await shopRes.json();
     const shopGid = shopJson?.data?.shop?.id;
-    const shopDomain = shopJson?.data?.shop?.domain;
+   const shopDomain = shopJson?.data?.shop?.myshopifyDomain;
+
 
     if (!shopGid || !shopDomain) {
       throw new Error("Failed to fetch shop info from Shopify");

@@ -4,9 +4,8 @@ import { ShopProvider } from "../src/context/ShopContext";
 
 export default function AppIndex() {
   return (
-    // <ShopProvider>
-    //   <ConfettiApp />
-    // </ShopProvider>
-    <div>Hemlo</div>
+    <ShopProvider>
+      <ConfettiApp />
+    </ShopProvider>
   );
 }

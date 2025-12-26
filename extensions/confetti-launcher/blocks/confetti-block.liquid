@@ -4,7 +4,11 @@
   data-trigger-event='{{ shop.metafields.confetti_maker.trigger_event.value }}'>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script
+  src="{{ 'confetti.browser.min.js' | asset_url }}"
+  defer
+></script>
+
 
 <script>
 (function () {

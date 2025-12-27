@@ -1,5 +1,7 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+// app/routes/app._index.jsx
+import { json } from "@react-router/node";
+import { useLoaderData } from "react-router";
+
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
@@ -9,13 +11,12 @@ import { ShopProvider } from "../src/context/ShopContext";
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
 
-  // 🔴 ONLY ACTIVE ITEMS
   const activeItems = await prisma.confettiConfig.findMany({
     where: {
       shopDomain: session.shop,
       active: true,
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { updatedAt: "updatedAt" },
   });
 
   return json({ activeItems });

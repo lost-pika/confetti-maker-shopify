@@ -1,6 +1,8 @@
+import { unauthenticated } from "../shopify.server";
+
 export const runtime = "nodejs";
 
-import { unauthenticated } from "../../shopify.server";
+import { unauthenticated } from "../shopify.server";
 
 export const action = async ({ request }) => {
   try {

@@ -2,6 +2,6 @@ name = "Confetti Launcher"
 type = "theme_app_extension"
 api_version = "2024-10"
 
-[[extensions.targets]]
-target = "theme.app.block"
+[[targets]]
+target = "body"
 module = "./blocks/confetti-block.liquid"

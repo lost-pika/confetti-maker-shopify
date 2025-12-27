@@ -2,7 +2,7 @@
 
 client_id = "72c63ce02e7da1645b5de98cbc6f2b44"
 name = "Confetti Maker"
-application_url = "https://confetti-maker-shopify.vercel.app"  # ← Added /app
+application_url = "https://confetti-maker.vercel.app"  # ← Added /app
 embedded = true
 
 [build]
@@ -24,4 +24,4 @@ api_version = "2026-01"
 scopes = "write_products"
 
 [auth]
-redirect_urls = [ "https://confetti-maker-shopify.vercel.app/auth/callback" ]  # ← Also check this is correct
+redirect_urls = [ "https://confetti-maker.vercel.app/auth/callback" ]  # ← Also check this is correct

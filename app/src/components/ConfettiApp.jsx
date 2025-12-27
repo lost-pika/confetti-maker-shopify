@@ -29,7 +29,7 @@ const loadConfetti = () => {
   });
 };
 
-export default function ConfettiApp({ initialItems = [] }) {
+export default function ConfettiApp({ initialActiveItems = [] }) {
   const { activateConfetti, deactivateConfetti } = useConfettiAPI();
 
   const [triggerModalState, setTriggerModalState] = useState({
@@ -155,29 +155,22 @@ export default function ConfettiApp({ initialItems = [] }) {
     }
   };
 
-  useEffect(() => {
-  if (!initialItems.length) return;
+useEffect(() => {
+  if (!initialActiveItems.length) return;
 
   setSavedConfetti(
-    initialItems
-      .filter((i) => i.type === "confetti")
-      .map((i) => ({
-        ...i,
-        isActive: i.active,   // DB → UI
-        isPredefined: false,
-      }))
+    initialActiveItems
+      .filter(i => i.type === "confetti")
+      .map(i => ({ ...i, isActive: true }))
   );
 
   setSavedVouchers(
-    initialItems
-      .filter((i) => i.type === "voucher")
-      .map((i) => ({
-        ...i,
-        isActive: i.active,
-        isPredefined: false,
-      }))
+    initialActiveItems
+      .filter(i => i.type === "voucher")
+      .map(i => ({ ...i, isActive: true }))
   );
-}, [initialItems]);
+}, [initialActiveItems]);
+
 
 
   useEffect(() => {

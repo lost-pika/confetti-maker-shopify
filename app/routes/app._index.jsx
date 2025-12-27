@@ -1,4 +1,3 @@
-// app/routes/app._index.jsx
 import { json } from "@react-router/node";
 import { useLoaderData } from "react-router";
 
@@ -9,17 +8,27 @@ import ConfettiApp from "../src/components/ConfettiApp";
 import { ShopProvider } from "../src/context/ShopContext";
 
 export const loader = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  try {
+    const { session } = await authenticate.admin(request);
 
-  const activeItems = await prisma.confettiConfig.findMany({
-    where: {
-      shopDomain: session.shop,
-      active: true,
-    },
-    orderBy: { updatedAt: "updatedAt" },
-  });
+    if (!session?.shop) {
+      return json({ activeItems: [] });
+    }
 
-  return json({ activeItems });
+    const activeItems = await prisma.confettiConfig.findMany({
+      where: {
+        shopDomain: session.shop,
+        active: true,
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return json({ activeItems });
+  } catch (err) {
+    // 🔥 CRITICAL: never crash on refresh
+    console.error("[app._index] loader failed safely:", err);
+    return json({ activeItems: [] });
+  }
 };
 
 export default function AppIndex() {

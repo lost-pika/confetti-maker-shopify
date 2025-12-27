@@ -9,7 +9,7 @@ import { ShopProvider } from "../src/context/ShopContext";
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
 
-  const activeItems = await prisma.confettiConfig.findMany({
+  const activeItem = await prisma.confettiConfig.findFirst({
     where: {
       shopDomain: session.shop,
       active: true,
@@ -17,8 +17,11 @@ export const loader = async ({ request }) => {
     orderBy: { updatedAt: "desc" },
   });
 
-  return json({ activeItems });
+  return json({
+    activeItems: activeItem ? [activeItem] : [],
+  });
 };
+
 
 export default function AppIndex() {
   const { activeItems } = useLoaderData();

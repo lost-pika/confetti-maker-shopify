@@ -156,17 +156,22 @@ export default function ConfettiApp({ initialActiveItems = [] }) {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
   if (!initialActiveItems.length) return;
 
   setSavedConfetti(
-    initialActiveItems.filter((i) => i.type === "confetti")
+    initialActiveItems
+      .filter((i) => i.type === "confetti")
+      .map((i) => ({ ...i, isActive: true }))
   );
 
   setSavedVouchers(
-    initialActiveItems.filter((i) => i.type === "voucher")
+    initialActiveItems
+      .filter((i) => i.type === "voucher")
+      .map((i) => ({ ...i, isActive: true }))
   );
 }, [initialActiveItems]);
+
 
 
   useEffect(() => {

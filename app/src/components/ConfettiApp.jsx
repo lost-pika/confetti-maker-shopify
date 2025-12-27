@@ -29,8 +29,7 @@ const loadConfetti = () => {
   });
 };
 
-
-export default function ConfettiApp({ initialActiveItems = [] }) {
+export default function ConfettiApp() {
   const { activateConfetti, deactivateConfetti } = useConfettiAPI();
 
   const [triggerModalState, setTriggerModalState] = useState({
@@ -155,24 +154,6 @@ export default function ConfettiApp({ initialActiveItems = [] }) {
         });
     }
   };
-
- useEffect(() => {
-  if (!initialActiveItems.length) return;
-
-  setSavedConfetti(
-    initialActiveItems
-      .filter((i) => i.type === "confetti")
-      .map((i) => ({ ...i, isActive: true }))
-  );
-
-  setSavedVouchers(
-    initialActiveItems
-      .filter((i) => i.type === "voucher")
-      .map((i) => ({ ...i, isActive: true }))
-  );
-}, [initialActiveItems]);
-
-
 
   useEffect(() => {
     loadConfetti();

@@ -1,19 +1,39 @@
 (function () {
+  /* -----------------------------------------
+   * Load canvas-confetti safely
+   * ----------------------------------------- */
+  function loadConfetti(callback) {
+    if (window.confetti) {
+      callback();
+      return;
+    }
+
+    var script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+    script.async = true;
+    script.onload = callback;
+    document.head.appendChild(script);
+  }
+
+  /* -----------------------------------------
+   * Fire confetti (all burst types)
+   * ----------------------------------------- */
   function fireConfetti(cfg) {
     if (!window.confetti || !cfg) return;
 
-    const base = {
+    var base = {
       particleCount: cfg.particleCount || 150,
       spread: cfg.spread || 70,
       gravity: cfg.gravity ?? 1,
       origin: cfg.origin || { x: 0.5, y: 0.6 },
       colors: cfg.colors,
-      shapes: cfg.shapes
+      shapes: cfg.shapes,
     };
 
     switch (cfg.burstType) {
       case "fireworks":
-        for (let i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
           window.confetti({
             ...base,
             particleCount: Math.round(base.particleCount / 3),
@@ -21,8 +41,8 @@
             ticks: 250,
             origin: {
               x: 0.2 + 0.3 * i,
-              y: Math.random() * 0.4 + 0.1
-            }
+              y: Math.random() * 0.4 + 0.1,
+            },
           });
         }
         break;
@@ -30,11 +50,11 @@
       case "snow":
         window.confetti({
           ...base,
-          particleCount: base.particleCount ?? 250,
+          particleCount: base.particleCount || 250,
           spread: 160,
           gravity: 0.3,
           startVelocity: 10,
-          ticks: 400
+          ticks: 400,
         });
         break;
 
@@ -44,7 +64,7 @@
           spread: 120,
           startVelocity: 35,
           ticks: 300,
-          gravity: 0.7
+          gravity: 0.7,
         });
         break;
 
@@ -52,11 +72,14 @@
       default:
         window.confetti({
           ...base,
-          startVelocity: 45
+          startVelocity: 45,
         });
     }
   }
 
+  /* -----------------------------------------
+   * Trigger logic
+   * ----------------------------------------- */
   function shouldTrigger(trigger) {
     if (!trigger || !trigger.type) return false;
 
@@ -72,12 +95,12 @@
         );
 
       case "new_year": {
-        const d = new Date();
+        var d = new Date();
         return d.getMonth() === 0 && d.getDate() === 1;
       }
 
       case "custom_date": {
-        const today = new Date();
+        var today = new Date();
         return (
           today.getMonth() + 1 === trigger.month &&
           today.getDate() === trigger.day
@@ -89,6 +112,9 @@
     }
   }
 
+  /* -----------------------------------------
+   * Handle incoming settings
+   * ----------------------------------------- */
   function handleSettings(settings) {
     if (!settings || !settings.config) return;
 
@@ -97,7 +123,18 @@
     }
   }
 
-  window.addEventListener("confetti:settings:ready", function (e) {
-    handleSettings(e.detail);
+  /* -----------------------------------------
+   * INIT
+   * ----------------------------------------- */
+  loadConfetti(function () {
+    /* Listen for app → storefront event */
+    window.addEventListener("confetti:settings:ready", function (e) {
+      handleSettings(e.detail);
+    });
+
+    /* 🔥 SAFETY: auto-fire if settings already exist */
+    if (window.__CONFETTI_SETTINGS__) {
+      handleSettings(window.__CONFETTI_SETTINGS__);
+    }
   });
 })();

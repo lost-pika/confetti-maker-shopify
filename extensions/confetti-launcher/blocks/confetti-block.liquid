@@ -5,7 +5,7 @@
 <script>
   window.__CONFETTI_SETTINGS__ = {
     config: {{ shop.metafields.confetti_maker.active_config.value | json }},
-    trigger: "{{ shop.metafields.confetti_maker.trigger_event.value | default: 'page_load' }}"
+    trigger: "{{ shop.metafields.confetti_maker.trigger_event.value | default: json }}"
   };
 </script>
 

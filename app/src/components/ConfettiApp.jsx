@@ -29,7 +29,7 @@ const loadConfetti = () => {
   });
 };
 
-export default function ConfettiApp() {
+export default function ConfettiApp({ initialItems = [] }) {
   const { activateConfetti, deactivateConfetti } = useConfettiAPI();
 
   const [triggerModalState, setTriggerModalState] = useState({
@@ -154,6 +154,31 @@ export default function ConfettiApp() {
         });
     }
   };
+
+  useEffect(() => {
+  if (!initialItems.length) return;
+
+  setSavedConfetti(
+    initialItems
+      .filter((i) => i.type === "confetti")
+      .map((i) => ({
+        ...i,
+        isActive: i.active,   // DB → UI
+        isPredefined: false,
+      }))
+  );
+
+  setSavedVouchers(
+    initialItems
+      .filter((i) => i.type === "voucher")
+      .map((i) => ({
+        ...i,
+        isActive: i.active,
+        isPredefined: false,
+      }))
+  );
+}, [initialItems]);
+
 
   useEffect(() => {
     loadConfetti();

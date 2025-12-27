@@ -1,5 +1,4 @@
-import { useLoaderData } from "react-router";
-import { json } from "react-router";
+import { json, useLoaderData } from "@remix-run/react";
 
 import ConfettiApp from "../src/components/ConfettiApp";
 import { ShopProvider } from "../src/context/ShopContext";

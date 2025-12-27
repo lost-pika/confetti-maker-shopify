@@ -56,10 +56,20 @@ export const action = async ({ request }) => {
     });
 
     // 5️⃣ DEACTIVATE OLD
-    await prisma.confettiConfig.updateMany({
-      where: { shopId: shop.id },
-      data: { active: false },
-    });
+    // await prisma.confettiConfig.updateMany({
+    //   where: { shopId: shop.id },
+    //   data: { active: false },
+    // });
+
+    // BEFORE creating new record
+await prisma.confettiConfig.updateMany({
+  where: {
+    shopDomain: session.shop,
+    active: true,
+  },
+  data: { active: false },
+});
+
 
     // 6️⃣ UPSERT CONFETTI (🔥 FIXED)
     const record = await prisma.confettiConfig.upsert({

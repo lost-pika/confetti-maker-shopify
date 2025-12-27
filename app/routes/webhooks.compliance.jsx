@@ -1,5 +1,4 @@
-import { unauthenticated } from "../shopify.server";
-
+// app/routes/webhooks.compliance.server.jsx
 export const runtime = "nodejs";
 
 import { unauthenticated } from "../shopify.server";

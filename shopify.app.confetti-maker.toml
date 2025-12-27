@@ -2,7 +2,7 @@
 
 client_id = "52c90499b09f59145f055fcaea861ab0"
 name = "Confetti Maker"
-application_url = "https://confetti-maker-shopify.vercel.app"
+application_url = "https://confetti-maker.vercel.app"
 embedded = true
 
 [build]
@@ -32,4 +32,4 @@ api_version = "2026-01"
 scopes = "write_products"
 
 [auth]
-redirect_urls = [ "https://confetti-maker-shopify.vercel.app/auth/callback" ]
+redirect_urls = [ "https://confetti-maker.vercel.app/auth/callback" ]

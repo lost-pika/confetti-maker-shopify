@@ -1,96 +1,20 @@
-<div
-  id="confetti-launcher-root"
-  data-confetti-config='{{ shop.metafields.confetti_maker.active_config.value }}'
-  data-trigger-event='{{ shop.metafields.confetti_maker.trigger_event.value | default: "page_load" }}'>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<div id="confetti-launcher-root"></div>
 
 <script>
-(function () {
-  function init() {
-    var root = document.getElementById('confetti-launcher-root');
-    if (!root) {
-      console.log('[Confetti] root not found');
-      return;
-    }
-
-    if (!window.confetti) {
-      console.log('[Confetti] library not ready, retrying...');
-      setTimeout(init, 100);
-      return;
-    }
-
-    var rawConfig = root.dataset.confettiConfig;
-    var triggerEvent = root.dataset.triggerEvent || 'page_load';
-
-    if (!rawConfig || rawConfig === '{}' || rawConfig === 'null') {
-      console.log('[Confetti] no active config');
-      return;
-    }
-
-    var config;
-    try {
-      config = typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
-    } catch (e) {
-      console.error('[Confetti] invalid JSON', e);
-      return;
-    }
-
-    console.log('[Confetti] loaded config', config);
-
-    function shouldTrigger() {
-      if (triggerEvent === 'page_load') return true;
-      if (triggerEvent === 'purchase_complete') {
-        return window.location.pathname.includes('/thank_you');
-      }
-      if (triggerEvent === 'new_year') {
-        var d = new Date();
-        return d.getMonth() === 0 && d.getDate() === 1;
-      }
-      return false;
-    }
-
-    function fire(cfg) {
-      var base = {
-        particleCount: cfg.particleCount || 150,
-        spread: cfg.spread || 70,
-        gravity: cfg.gravity ?? 1,
-        origin: cfg.origin || { x: 0.5, y: 0.6 },
-        colors: cfg.colors,
-        shapes: cfg.shapes
-      };
-
-      if (cfg.burstType === 'fireworks') {
-        for (var i = 0; i < 3; i++) {
-          window.confetti(Object.assign({}, base, {
-            particleCount: Math.round(base.particleCount / 3),
-            startVelocity: 50,
-            ticks: 250,
-            origin: { x: 0.2 + 0.3 * i, y: Math.random() * 0.4 + 0.1 }
-          }));
-        }
-        return;
-      }
-
-      window.confetti(base);
-    }
-
-    if (shouldTrigger()) {
-      fire(config);
-    }
-  }
-
-  document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', init)
-    : init();
-})();
+  window.__CONFETTI_SETTINGS__ = {
+    config: {{ shop.metafields.confetti_maker.active_config.value | json }},
+    trigger: "{{ shop.metafields.confetti_maker.trigger_event.value | default: 'page_load' }}"
+  };
 </script>
+
+<script src="{{ 'confetti-widget.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
   "name": "Confetti Launcher",
-  "target": "section",
+  "target": "body",
   "settings": []
 }
 {% endschema %}

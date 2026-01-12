@@ -17,6 +17,7 @@ export default function AppIndex() {
   return (
     <ShopProvider>
       <div className="p-6 max-w-5xl mx-auto">
+        Hello
 
         {/* Setup banner only after shop domain loads */}
         <ConfettiSetupBanner shop={shop} />

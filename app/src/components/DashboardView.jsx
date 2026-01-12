@@ -64,7 +64,7 @@ export default function DashboardView({
             {/* Instructions Button */}
             <button
               onClick={onShowInstructions}
-              className="px-4 py-2 rounded-lg from-orange-400 to-pink-500 text-white text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-pink-500 text-white text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
             >
               Instructions
             </button>

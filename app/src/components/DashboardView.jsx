@@ -1,10 +1,10 @@
 // app/src/components/DashboardView.jsx
 import React from "react";
-import React, { useEffect, useState } from "react";
 import { Search, Plus, Sparkles } from "lucide-react";
 import ConfettiCard from "./ConfettiCard";
 
 export default function DashboardView({
+  shopDomain,
   onShowInstructions,
   activeDraftTab,
   setActiveDraftTab,
@@ -26,14 +26,6 @@ export default function DashboardView({
     ...savedConfetti.filter((i) => i.isActive),
     ...savedVouchers.filter((i) => i.isActive),
   ];
-
-  const [shopDomain, setShopDomain] = useState(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setShopDomain(window.Shopify?.shop || null);
-    }
-  }, []);
 
   const displayList = filteredList.filter((item) => {
     // if (!item.isPredefined && item.isActive) return false;

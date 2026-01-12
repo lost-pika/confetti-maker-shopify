@@ -34,6 +34,14 @@ const loadConfetti = () => {
 export default function ConfettiApp() {
   const { activateConfetti, deactivateConfetti } = useConfettiAPI();
 
+  const [shopDomain, setShopDomain] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setShopDomain(window.Shopify?.shop || null);
+    }
+  }, []);
+
   const [triggerModalState, setTriggerModalState] = useState({
     open: false,
     resolve: null,
@@ -271,7 +279,6 @@ export default function ConfettiApp() {
     await activateConfetti(item, triggerEvent);
     setShowInstructions(true);
 
-
     const setter =
       item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
 
@@ -380,13 +387,11 @@ export default function ConfettiApp() {
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-
-
-
   return (
     <>
       {view === "dashboard" ? (
         <DashboardView
+          shopDomain={shopDomain}
           onShowInstructions={() => setShowInstructions(true)}
           activeDraftTab={activeDraftTab}
           setActiveDraftTab={setActiveDraftTab}

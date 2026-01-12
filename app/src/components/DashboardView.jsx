@@ -4,6 +4,7 @@ import { Search, Plus, Sparkles } from "lucide-react";
 import ConfettiCard from "./ConfettiCard";
 
 export default function DashboardView({
+  onShowInstructions,
   activeDraftTab,
   setActiveDraftTab,
   contentSource,
@@ -56,6 +57,26 @@ export default function DashboardView({
                 Create magical moment triggers
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Instructions Button */}
+            <button
+              onClick={onShowInstructions}
+              className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm hover:bg-gray-100"
+            >
+              Instructions
+            </button>
+
+            {/* Deep Link Button */}
+            <a
+              href={`https://admin.shopify.com/store/${window.Shopify?.shop}/themes/current/editor?context=apps`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-lg bg-teal-500 text-white text-sm hover:bg-teal-600"
+            >
+              Open Theme Editor
+            </a>
           </div>
         </div>
 
@@ -204,7 +225,8 @@ export default function DashboardView({
                   activeDraftTab={activeDraftTab}
                   onToggle={toggleActive}
                   onEdit={handleEditDraft}
-                  onDelete={(id) => deleteDraft(id, item.type)}
+                  // onDelete={(id) => deleteDraft(id, item.type)}
+                  onDelete={() => deleteDraft(item)}
                 />
               ))
             ) : (

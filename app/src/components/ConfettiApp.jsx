@@ -4,6 +4,7 @@ import { useConfettiAPI } from "../hooks/useConfettiAPI";
 import { TriggerEventModal } from "./TriggerEventModal";
 import DashboardView from "./DashboardView";
 import EditorView from "./EditorView";
+import ConfettiOnboarding from "./ConfettiOnboarding";
 import {
   SHAPE_OPTIONS,
   BURST_TYPES,
@@ -163,14 +164,6 @@ export default function ConfettiApp() {
     if (view === "dashboard") setActiveConfig(null);
   }, [view]);
 
-  const [themeInfo, setThemeInfo] = useState(null);
-
-useEffect(() => {
-  fetch("/api/theme-info")
-    .then((res) => res.json())
-    .then((data) => setThemeInfo(data));
-}, []);
-
   const handleCreateNew = (typeOverride) => {
     const type =
       typeof typeOverride === "string" ? typeOverride : activeDraftTab;
@@ -274,6 +267,7 @@ useEffect(() => {
     if (!triggerEvent) return;
 
     await activateConfetti(item, triggerEvent);
+    setShowOnboarding(true);
 
     const setter =
       item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
@@ -358,10 +352,20 @@ useEffect(() => {
     await requestActivation(freshItem);
   };
 
+  const [themeInfo, setThemeInfo] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/theme-info")
+      .then((r) => r.json())
+      .then((data) => setThemeInfo(data));
+  }, []);
+
   const deleteDraft = async (item) => {
-    if (item.isActive) {
-      await deactivateConfetti(item.id);
-    }
+    // if (item.isActive) {
+    //   await activateConfetti(item, triggerEvent);
+    //   setShowOnboarding(true);
+    // }
 
     const setter =
       item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
@@ -381,6 +385,16 @@ useEffect(() => {
   const filteredList = currentList.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  if (showOnboarding && themeInfo) {
+    return (
+      <ConfettiOnboarding
+        shop={themeInfo.shop}
+        themeId={themeInfo.themeId}
+        onDone={() => setShowOnboarding(false)}
+      />
+    );
+  }
 
   return (
     <>

@@ -4,7 +4,6 @@ import { Search, Plus, Sparkles } from "lucide-react";
 import ConfettiCard from "./ConfettiCard";
 
 export default function DashboardView({
-  themeInfo,
   activeDraftTab,
   setActiveDraftTab,
   contentSource,
@@ -59,39 +58,6 @@ export default function DashboardView({
             </div>
           </div>
         </div>
-
-        {/* ONBOARDING / REQUIRED SETUP */}
-        {themeInfo && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-10">
-            <h2 className="text-xl font-bold text-slate-900 mb-3">
-              Install the Confetti Launcher in Your Theme
-            </h2>
-            <p className="text-slate-600 mb-5">
-              To display confetti on your storefront, you must add the Confetti
-              Launcher app block in your theme editor.
-            </p>
-
-            <ol className="list-decimal ml-5 space-y-2 text-slate-700">
-              <li>Open your theme editor</li>
-              <li>
-                Click <strong>Add app block</strong>
-              </li>
-              <li>
-                Select <strong>Confetti Launcher</strong>
-              </li>
-              <li>Click Save</li>
-            </ol>
-
-            <a
-              href={`https://admin.shopify.com/store/${themeInfo.shop}/themes/${themeInfo.themeId}/editor?context=apps&activateAppBlockId=confetti_maker/confetti-launcher`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
-            >
-              Open Theme Editor
-            </a>
-          </div>
-        )}
 
         {/* Hero Banner */}
         {activeItems.length === 0 && (

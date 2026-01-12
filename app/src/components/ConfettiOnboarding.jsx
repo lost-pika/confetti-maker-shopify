@@ -1,53 +1,43 @@
 import React from "react";
+import { Sparkles } from "lucide-react";
 
-export default function ConfettiOnboarding({ shop, themeId, onDone }) {
-  const deepLink = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps&activateAppBlockId=confetti_maker/confetti-launcher`;
+export default function ConfettiSetupBanner({ shop }) {
+  if (!shop) return null;
+
+  const deepLink = `https://admin.shopify.com/store/${shop}/themes/current/editor?context=apps&activateAppBlockId=confetti_maker/confetti-launcher`;
 
   return (
-    <div className="p-8 min-h-screen bg-gray-50 flex justify-center items-center">
-      <div className="bg-white rounded-xl p-10 w-full max-w-xl border border-gray-200 shadow-xl">
-        <div className="text-center mb-6">
-          <div className="text-5xl mb-4">🎉</div>
-          <h1 className="text-2xl font-bold text-gray-800">Setup Almost Done</h1>
-          <p className="text-gray-600 mt-2">
-            You must enable the Confetti Launcher in your theme to display
-            celebrations on your storefront.
-          </p>
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow mb-8">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-md">
+          <Sparkles className="w-6 h-6 text-white" />
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-6">
-          <h2 className="text-lg font-semibold mb-3">
-            Enable Confetti Launcher App Block
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-slate-900">
+            Install Confetti Launcher on Your Storefront
           </h2>
 
-          <ol className="list-decimal list-inside text-sm text-gray-700 space-y-2">
-            <li>Click “Open Theme Editor”.</li>
-            <li>In the left sidebar, click “Add App Block”.</li>
+          <p className="text-slate-600 text-sm mt-2">
+            To display confetti on your store, you must enable the 
+            <strong> Confetti Launcher app block</strong> in your theme.
+          </p>
+
+          <ol className="list-decimal list-inside text-sm text-slate-700 mt-4 space-y-1">
+            <li>Click the button below to open the theme editor.</li>
+            <li>Click <strong>Add app block</strong>.</li>
             <li>Select <strong>Confetti Launcher</strong>.</li>
-            <li>Click Save.</li>
+            <li>Click <strong>Save</strong>.</li>
           </ol>
 
-          <p className="text-xs text-gray-500 mt-3">
-            This is required by Shopify to render confetti on your storefront.
-          </p>
-        </div>
-
-        <div className="flex gap-3">
           <a
             href={deepLink}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 text-center px-5 py-3 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600"
+            className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
           >
             Open Theme Editor
           </a>
-
-          <button
-            onClick={onDone}
-            className="px-5 py-3 flex-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
-          >
-            Finish
-          </button>
         </div>
       </div>
     </div>

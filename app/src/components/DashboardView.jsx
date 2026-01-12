@@ -1,5 +1,6 @@
 // app/src/components/DashboardView.jsx
 import React from "react";
+import React, { useEffect, useState } from "react";
 import { Search, Plus, Sparkles } from "lucide-react";
 import ConfettiCard from "./ConfettiCard";
 
@@ -25,6 +26,14 @@ export default function DashboardView({
     ...savedConfetti.filter((i) => i.isActive),
     ...savedVouchers.filter((i) => i.isActive),
   ];
+
+  const [shopDomain, setShopDomain] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setShopDomain(window.Shopify?.shop || null);
+    }
+  }, []);
 
   const displayList = filteredList.filter((item) => {
     // if (!item.isPredefined && item.isActive) return false;
@@ -70,7 +79,11 @@ export default function DashboardView({
 
             {/* Deep Link Button */}
             <a
-              href={`https://admin.shopify.com/store/${window.Shopify?.shop}/themes/current/editor?context=apps`}
+              href={
+                shopDomain
+                  ? `https://admin.shopify.com/store/${shopDomain}/themes/current/editor?context=apps`
+                  : "#"
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 rounded-lg bg-teal-500 text-white text-sm hover:bg-teal-600"

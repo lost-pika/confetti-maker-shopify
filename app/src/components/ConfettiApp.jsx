@@ -386,15 +386,16 @@ export default function ConfettiApp() {
     item.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  if (showOnboarding && themeInfo) {
-    return (
-      <ConfettiOnboarding
-        shop={themeInfo.shop}
-        themeId={themeInfo.themeId}
-        onDone={() => setShowOnboarding(false)}
-      />
-    );
-  }
+  if (showOnboarding && themeInfo?.shop && themeInfo?.themeId) {
+  return (
+    <ConfettiOnboarding
+      shop={themeInfo.shop}
+      themeId={themeInfo.themeId}
+      onDone={() => setShowOnboarding(false)}
+    />
+  );
+}
+
 
   return (
     <>

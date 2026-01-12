@@ -163,6 +163,14 @@ export default function ConfettiApp() {
     if (view === "dashboard") setActiveConfig(null);
   }, [view]);
 
+  const [themeInfo, setThemeInfo] = useState(null);
+
+useEffect(() => {
+  fetch("/api/theme-info")
+    .then((res) => res.json())
+    .then((data) => setThemeInfo(data));
+}, []);
+
   const handleCreateNew = (typeOverride) => {
     const type =
       typeof typeOverride === "string" ? typeOverride : activeDraftTab;
@@ -303,75 +311,63 @@ export default function ConfettiApp() {
   };
 
   const forceDeactivateInUI = (item) => {
-  const setter =
-    item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+    const setter =
+      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-  setter((prev) =>
-    prev.map((i) =>
-      i.id === item.id ? { ...i, isActive: false } : i
-    )
-  );
+    setter((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, isActive: false } : i)),
+    );
 
-  setContentSource("saved");
-};
-
+    setContentSource("saved");
+  };
 
   const toggleActive = async (item) => {
-  const source =
-    item.type === "confetti" ? savedConfetti : savedVouchers;
+    const source = item.type === "confetti" ? savedConfetti : savedVouchers;
 
-  // try to get fresh state version
-  const freshItem =
-    source.find((i) => i.id === item.id) || item;
+    // try to get fresh state version
+    const freshItem = source.find((i) => i.id === item.id) || item;
 
-  // 🔴 DEACTIVATE
-  if (freshItem.isActive) {
-    await requestDeactivation(freshItem);
-    setContentSource("saved");
-    return;
-  }
+    // 🔴 DEACTIVATE
+    if (freshItem.isActive) {
+      await requestDeactivation(freshItem);
+      setContentSource("saved");
+      return;
+    }
 
-  // 🔵 ACTIVATE TEMPLATE (convert once)
-  if (freshItem.isPredefined) {
-    const newItem = {
-      ...freshItem,
-      id: Date.now().toString(),
-      isPredefined: false,
-      isActive: false,
-      createdAt: "Just now",
-    };
+    // 🔵 ACTIVATE TEMPLATE (convert once)
+    if (freshItem.isPredefined) {
+      const newItem = {
+        ...freshItem,
+        id: Date.now().toString(),
+        isPredefined: false,
+        isActive: false,
+        createdAt: "Just now",
+      };
 
-    const setter =
-      freshItem.type === "confetti"
-        ? setSavedConfetti
-        : setSavedVouchers;
+      const setter =
+        freshItem.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-    setter((prev) => [newItem, ...prev]);
+      setter((prev) => [newItem, ...prev]);
 
-    // 🔥 modal opens here
-    await requestActivation(newItem);
-    return;
-  }
+      // 🔥 modal opens here
+      await requestActivation(newItem);
+      return;
+    }
 
-  // 🟢 ACTIVATE SAVED DRAFT
-  await requestActivation(freshItem);
-};
-
-
+    // 🟢 ACTIVATE SAVED DRAFT
+    await requestActivation(freshItem);
+  };
 
   const deleteDraft = async (item) => {
-  if (item.isActive) {
-    await deactivateConfetti(item.id);
-  }
+    if (item.isActive) {
+      await deactivateConfetti(item.id);
+    }
 
-  const setter =
-    item.type === "confetti"
-      ? setSavedConfetti
-      : setSavedVouchers;
+    const setter =
+      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-  setter((prev) => prev.filter((i) => i.id !== item.id));
-};
-
+    setter((prev) => prev.filter((i) => i.id !== item.id));
+  };
 
   const currentList =
     activeDraftTab === "confetti"
@@ -390,6 +386,7 @@ export default function ConfettiApp() {
     <>
       {view === "dashboard" ? (
         <DashboardView
+          themeInfo={themeInfo}
           activeDraftTab={activeDraftTab}
           setActiveDraftTab={setActiveDraftTab}
           contentSource={contentSource}

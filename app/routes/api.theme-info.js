@@ -5,7 +5,7 @@ export async function loader({ request }) {
 
   const shop = session.shop;
 
-  // Fetch main theme
+  // fetch main theme
   const themes = await admin.rest.resources.Theme.all({ session });
   const main = themes.data.find((t) => t.role === "main");
 

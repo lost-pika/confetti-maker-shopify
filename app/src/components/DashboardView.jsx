@@ -73,8 +73,8 @@ export default function DashboardView({
             <a
               href={
                 shopDomain
-                  ? `https://admin.shopify.com/store/${shopDomain}/themes/current/editor?context=apps`
-                  : "#"
+                  ? `https://admin.shopify.com/store/${shop}/themes/current/editor?context=apps`
+                  : "https://admin.shopify.com/themes"
               }
               target="_blank"
               rel="noopener noreferrer"

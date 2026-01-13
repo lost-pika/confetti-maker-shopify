@@ -36,34 +36,32 @@ export default function ConfettiApp() {
 
   const [shopDomain, setShopDomain] = useState(null);
 
-// --- state must be defined FIRST ---
-const [savedConfetti, setSavedConfetti] = useState([]);
-const [savedVouchers, setSavedVouchers] = useState([]);
+  // --- state must be defined FIRST ---
+  const [savedConfetti, setSavedConfetti] = useState([]);
+  const [savedVouchers, setSavedVouchers] = useState([]);
 
-// --- load from localStorage ONCE (only in browser) ---
-useEffect(() => {
-  if (typeof window === "undefined") return;
+  // --- load from localStorage ONCE (only in browser) ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-  const confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
-  const vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
+    const confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
+    const vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
 
-  setSavedConfetti(confetti);
-  setSavedVouchers(vouchers);
-}, []);
+    setSavedConfetti(confetti);
+    setSavedVouchers(vouchers);
+  }, []);
 
-// --- save confetti to localStorage ---
-useEffect(() => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
-}, [savedConfetti]);
+  // --- save confetti to localStorage ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
+  }, [savedConfetti]);
 
-// --- save vouchers to localStorage ---
-useEffect(() => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
-}, [savedVouchers]);
-
-
+  // --- save vouchers to localStorage ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
+  }, [savedVouchers]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -199,9 +197,6 @@ useEffect(() => {
   useEffect(() => {
     if (view === "dashboard") setActiveConfig(null);
   }, [view]);
-
-  
-
 
   const handleCreateNew = (typeOverride) => {
     const type =
@@ -369,8 +364,14 @@ useEffect(() => {
 
     // 🔵 ACTIVATE TEMPLATE (convert once)
     if (freshItem.isPredefined) {
+      const realType =
+        PREDEFINED_CONFETTI.find((t) => t.id === freshItem.id)?.type ||
+        PREDEFINED_VOUCHERS.find((t) => t.id === freshItem.id)?.type ||
+        freshItem.type; // fallback
+
       const newItem = {
         ...freshItem,
+        type: realType, // ✔ CRITICAL FIX
         id: Date.now().toString(),
         isPredefined: false,
         isActive: false,
@@ -380,10 +381,8 @@ useEffect(() => {
       const setter =
         freshItem.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-      setter((prev) => [newItem, ...prev]);
+      await requestActivation(newItem); // activation will save into saved section
 
-      // 🔥 modal opens here
-      await requestActivation(newItem);
       return;
     }
 

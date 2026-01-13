@@ -83,7 +83,8 @@ export default function ConfettiCard({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(item.id);
+                  onDelete(item)     // pass whole item
+
                 }}
                 className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
                 title="Delete"

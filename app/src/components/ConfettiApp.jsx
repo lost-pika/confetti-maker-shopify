@@ -49,25 +49,35 @@ export default function ConfettiApp() {
     resolve: null,
   });
 
+  function dedupeByTitle(list) {
+    const seen = new Set();
+    return list.filter((item) => {
+      if (seen.has(item.title)) return false;
+      seen.add(item.title);
+      return true;
+    });
+  }
+
   useEffect(() => {
-  if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
-  let confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
-  let vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
+    let confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
+    let vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
 
-  // 🚨 Remove WRONG-TYPE items from voucher list
-  vouchers = vouchers.filter(v => v.type === "voucher");
+    // Remove wrong-type entries
+    confetti = confetti.filter((c) => c.type === "confetti");
+    vouchers = vouchers.filter((v) => v.type === "voucher");
 
-  // 🚨 Remove WRONG-TYPE items from confetti list
-  confetti = confetti.filter(c => c.type === "confetti");
+    // 🔥 REMOVE DUPLICATES BY TITLE
+    confetti = dedupeByTitle(confetti);
+    vouchers = dedupeByTitle(vouchers);
 
-  localStorage.setItem("savedConfetti", JSON.stringify(confetti));
-  localStorage.setItem("savedVouchers", JSON.stringify(vouchers));
+    localStorage.setItem("savedConfetti", JSON.stringify(confetti));
+    localStorage.setItem("savedVouchers", JSON.stringify(vouchers));
 
-  setSavedConfetti(confetti);
-  setSavedVouchers(vouchers);
-}, []);
-
+    setSavedConfetti(confetti);
+    setSavedVouchers(vouchers);
+  }, []);
 
   // -------------------------------------------------------------
   // 🟧 2) LOAD LOCAL STORAGE
@@ -171,38 +181,43 @@ export default function ConfettiApp() {
   // 🟧 7) SAVE DRAFT (NO DUPLICATES)
   // -------------------------------------------------------------
   const saveDraft = () => {
-    if (!activeConfig) return;
+    if (!activeConfig) return null;
 
-    const isVoucher = activeConfig.type === "voucher";
-    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
+    const setter =
+      activeConfig.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
     setter((prev) => {
-      // 🟢 Check by title + type to prevent duplicates
-      const existing = prev.find(
-        (i) =>
-          i.title.trim().toLowerCase() ===
-          activeConfig.title.trim().toLowerCase(),
-      );
+      const exists = prev.find((i) => i.id === item.id);
 
-      // Update existing one
-      if (existing) {
-        return prev.map((i) =>
-          i.id === existing.id
-            ? { ...existing, ...activeConfig, id: existing.id } // ID stays same
-            : i,
+      let updated;
+
+      if (exists) {
+        updated = prev.map((i) =>
+          i.id === item.id ? { ...i, isActive: true } : i,
         );
+      } else {
+        updated = [
+          {
+            ...item,
+            isActive: true,
+            isPredefined: false,
+            createdAt: "Just now",
+          },
+          ...prev,
+        ];
       }
 
-      // Create new
-      return [
-        {
-          ...activeConfig,
-          createdAt: "Just now",
-          isActive: false,
-          isPredefined: false,
-        },
-        ...prev,
-      ];
+      // 🔥 REMOVE DUPLICATES BY TITLE
+      updated = dedupeByTitle(updated);
+
+      // SAVE
+      if (item.type === "confetti") {
+        localStorage.setItem("savedConfetti", JSON.stringify(updated));
+      } else {
+        localStorage.setItem("savedVouchers", JSON.stringify(updated));
+      }
+
+      return updated;
     });
 
     setView("dashboard");

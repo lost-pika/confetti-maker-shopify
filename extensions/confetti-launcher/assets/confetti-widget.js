@@ -63,41 +63,63 @@
   }
 
   function renderVoucher(config) {
-    if (config?.type !== "voucher") return;
+  if (config?.type !== "voucher") return;
 
-    const root = document.getElementById("confetti-launcher-root");
-    if (!root) return;
+  const root = document.getElementById("confetti-launcher-root");
+  if (!root) return;
 
-    const code =
-      config.code || config.voucherCode || config.voucher?.code || "";
+  const code =
+    config.code ||
+    config.voucherCode ||
+    config.voucher?.code ||
+    "";
 
-    const html = `
-    <div style="
-      max-width: 360px;
-      margin: 20px auto;
-      padding: 20px;
+  const html = `
+    <div id="confetti-voucher-card" style="
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999999;
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 18px;
+      padding: 24px 28px;
+      width: 340px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
       text-align: center;
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      animation: fadeSlideIn 0.6s ease-out forwards;
+      opacity: 0;
     ">
-      <div style="font-size: 14px; color:#555;">${config.title}</div>
+      <div style="font-size: 15px; font-weight: 600; color:#111;">
+        ${config.title}
+      </div>
+
       <div style="
-        margin-top: 10px;
-        padding: 12px;
-        background:#f4f6f8;
-        border-radius: 10px;
-        font-weight: bold;
-        letter-spacing: 3px;
+        margin-top: 12px;
+        padding: 14px;
+        background:#f5f7fa;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.25em;
+        font-size: 18px;
+        color:#1e293b;
+        border: 1px solid #e2e8f0;
       ">
         ${code}
       </div>
     </div>
+
+    <style>
+      @keyframes fadeSlideIn {
+        0% { opacity: 0; transform: translate(-50%, -20px); }
+        100% { opacity: 1; transform: translate(-50%, 0); }
+      }
+    </style>
   `;
 
-    root.innerHTML = html;
-  }
+  root.innerHTML = html;
+}
 
   function init() {
     const settings = window.__CONFETTI_SETTINGS__;

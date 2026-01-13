@@ -234,7 +234,7 @@ useEffect(() => {
       setActiveConfig({
         ...item,
         id: Date.now().toString(),
-        type: activeDraftTab,
+        type: item.type,
         isPredefined: false,
         isActive: false,
         createdAt: "Just now",

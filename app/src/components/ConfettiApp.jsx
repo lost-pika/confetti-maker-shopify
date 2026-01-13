@@ -36,7 +36,14 @@ export default function ConfettiApp() {
 
   const [shopDomain, setShopDomain] = useState(null);
 
-  useEffect(() => {
+// --- state must be defined FIRST ---
+const [savedConfetti, setSavedConfetti] = useState([]);
+const [savedVouchers, setSavedVouchers] = useState([]);
+
+// --- load from localStorage ONCE (only in browser) ---
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
   const confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
   const vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
 
@@ -44,13 +51,18 @@ export default function ConfettiApp() {
   setSavedVouchers(vouchers);
 }, []);
 
+// --- save confetti to localStorage ---
 useEffect(() => {
+  if (typeof window === "undefined") return;
   localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
 }, [savedConfetti]);
 
+// --- save vouchers to localStorage ---
 useEffect(() => {
+  if (typeof window === "undefined") return;
   localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
 }, [savedVouchers]);
+
 
 
   useEffect(() => {
@@ -87,9 +99,6 @@ useEffect(() => {
   const [activeDraftTab, setActiveDraftTab] = useState("confetti");
   const [contentSource, setContentSource] = useState("saved");
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [savedConfetti, setSavedConfetti] = useState([]);
-  const [savedVouchers, setSavedVouchers] = useState([]);
   const [activeConfig, setActiveConfig] = useState(null);
   const [showInstructions, setShowInstructions] = useState(false);
 

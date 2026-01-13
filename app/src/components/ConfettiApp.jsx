@@ -1,4 +1,3 @@
-// app/src/components/ConfettiApp.jsx
 import React, { useState, useEffect } from "react";
 import { useConfettiAPI } from "../hooks/useConfettiAPI";
 import { TriggerEventModal } from "./TriggerEventModal";
@@ -7,21 +6,18 @@ import EditorView from "./EditorView";
 import ConfettiInstructionsModal from "./ConfettiInstructionsModal";
 
 import {
-  SHAPE_OPTIONS,
-  BURST_TYPES,
   PREDEFINED_CONFETTI,
   PREDEFINED_VOUCHERS,
 } from "../constants/confettiConstants";
 
+// Load canvas-confetti script
 const loadConfetti = () => {
   if (typeof window !== "undefined" && window.confetti) {
     return Promise.resolve();
   }
   return new Promise((resolve, reject) => {
-    if (typeof document === "undefined") {
-      resolve();
-      return;
-    }
+    if (typeof document === "undefined") return resolve();
+
     const script = document.createElement("script");
     script.src =
       "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
@@ -34,13 +30,28 @@ const loadConfetti = () => {
 export default function ConfettiApp() {
   const { activateConfetti, deactivateConfetti } = useConfettiAPI();
 
-  const [shopDomain, setShopDomain] = useState(null);
-
-  // --- state must be defined FIRST ---
+  // -------------------------------------------------------------
+  // 🟧 1) STATE
+  // -------------------------------------------------------------
   const [savedConfetti, setSavedConfetti] = useState([]);
   const [savedVouchers, setSavedVouchers] = useState([]);
+  const [shopDomain, setShopDomain] = useState(null);
 
-  // --- load from localStorage ONCE (only in browser) ---
+  const [view, setView] = useState("dashboard");
+  const [activeDraftTab, setActiveDraftTab] = useState("confetti");
+  const [contentSource, setContentSource] = useState("saved");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeConfig, setActiveConfig] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  const [triggerModalState, setTriggerModalState] = useState({
+    open: false,
+    resolve: null,
+  });
+
+  // -------------------------------------------------------------
+  // 🟧 2) LOAD LOCAL STORAGE
+  // -------------------------------------------------------------
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -51,29 +62,30 @@ export default function ConfettiApp() {
     setSavedVouchers(vouchers);
   }, []);
 
-  // --- save confetti to localStorage ---
+  // save back to localStorage
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
+    if (typeof window !== "undefined")
+      localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
   }, [savedConfetti]);
 
-  // --- save vouchers to localStorage ---
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
+    if (typeof window !== "undefined")
+      localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
   }, [savedVouchers]);
 
+  // -------------------------------------------------------------
+  // 🟧 3) SHOP DOMAIN + LOAD CONFETTI LIBRARY
+  // -------------------------------------------------------------
   useEffect(() => {
     if (typeof window !== "undefined") {
       setShopDomain(window.Shopify?.shop || null);
     }
+    loadConfetti();
   }, []);
 
-  const [triggerModalState, setTriggerModalState] = useState({
-    open: false,
-    resolve: null,
-  });
-
+  // -------------------------------------------------------------
+  // 🟧 4) TRIGGER MODAL HELPERS
+  // -------------------------------------------------------------
   const showTriggerEventModal = () =>
     new Promise((resolve) => {
       setTriggerModalState({ open: true, resolve });
@@ -89,115 +101,9 @@ export default function ConfettiApp() {
     setTriggerModalState({ open: false, resolve: null });
   };
 
-  const showNotification = (msg) => {
-    console.log(msg);
-  };
-
-  const [view, setView] = useState("dashboard");
-  const [activeDraftTab, setActiveDraftTab] = useState("confetti");
-  const [contentSource, setContentSource] = useState("saved");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeConfig, setActiveConfig] = useState(null);
-  const [showInstructions, setShowInstructions] = useState(false);
-
-  const fireConfetti = (config) => {
-    if (typeof window === "undefined" || !window.confetti || !config) return;
-
-    const {
-      particleCount,
-      spread,
-      gravity,
-      shapes,
-      colors,
-      burstType,
-      origin,
-    } = config;
-
-    const base = {
-      particleCount: particleCount || 150,
-      spread: spread || 70,
-      gravity: gravity ?? 1,
-      origin: origin || { x: 0.5, y: 0.6 },
-      colors: colors && colors.length ? colors : undefined,
-      shapes: shapes && shapes.length ? shapes : undefined,
-    };
-
-    switch (burstType) {
-      case "cannon":
-        window.confetti({
-          ...base,
-          angle: 60,
-          spread: base.spread ?? 60,
-          startVelocity: 60,
-          scalar: 1.0,
-          ticks: 150,
-        });
-        break;
-
-      case "fireworks":
-        // multi‑burst fireworks from different origins
-        const count = 3;
-        const defaults = {
-          ...base,
-          particleCount: Math.round((base.particleCount ?? 180) / count),
-          spread: base.spread ?? 80,
-          startVelocity: 50,
-          ticks: 250,
-          gravity: base.gravity ?? 0.9,
-        };
-
-        for (let i = 0; i < count; i++) {
-          window.confetti({
-            ...defaults,
-            origin: {
-              x: 0.2 + 0.3 * i,
-              y: Math.random() * 0.4 + 0.1,
-            },
-          });
-        }
-        break;
-
-      case "pride":
-        window.confetti({
-          ...base,
-          spread: base.spread ?? 120,
-          startVelocity: 35,
-          scalar: 1.2,
-          ticks: 300,
-          gravity: base.gravity ?? 0.7,
-        });
-        break;
-
-      case "snow":
-        window.confetti({
-          ...base,
-          particleCount: base.particleCount ?? 250,
-          spread: base.spread ?? 160,
-          gravity: base.gravity ?? 0.3,
-          startVelocity: 10,
-          scalar: 0.8,
-          ticks: 400,
-          drift: 0.6,
-        });
-        break;
-
-      default:
-        window.confetti({
-          ...base,
-          startVelocity: 45,
-          spread: base.spread ?? 70,
-        });
-    }
-  };
-
-  useEffect(() => {
-    loadConfetti();
-  }, []);
-
-  useEffect(() => {
-    if (view === "dashboard") setActiveConfig(null);
-  }, [view]);
-
+  // -------------------------------------------------------------
+  // 🟧 5) CREATE NEW DRAFT
+  // -------------------------------------------------------------
   const handleCreateNew = (typeOverride) => {
     const type =
       typeof typeOverride === "string" ? typeOverride : activeDraftTab;
@@ -208,13 +114,9 @@ export default function ConfettiApp() {
       title: type === "confetti" ? "New Confetti Blast" : "New Voucher",
       particleCount: 150,
       spread: 70,
-      shapes: ["circle"],
+      shapes: type === "confetti" ? ["circle"] : [],
       gravity: 1.0,
-      drift: 0,
-      startVelocity: 45,
-      decay: 0.9,
-      origin: { x: 0.5, y: 0.6 },
-      colors: ["#FFB396", "#FFD1BA"],
+      colors: ["#FFB396"],
       code: type === "voucher" ? "SAVE20" : "",
       burstType: "cannon",
       isPredefined: false,
@@ -224,40 +126,51 @@ export default function ConfettiApp() {
     setView("editor");
   };
 
+  // -------------------------------------------------------------
+  // 🟧 6) EDIT A DRAFT OR TEMPLATE
+  // -------------------------------------------------------------
   const handleEditDraft = (item) => {
     if (item.isPredefined) {
+      // convert template → draft
       setActiveConfig({
         ...item,
         id: Date.now().toString(),
-        type: item.type,
         isPredefined: false,
         isActive: false,
         createdAt: "Just now",
+        type: item.type, // keep original type, not activeDraftTab
       });
     } else {
       setActiveConfig({ ...item });
     }
+
     setView("editor");
   };
 
+  // -------------------------------------------------------------
+  // 🟧 7) SAVE DRAFT (NO DUPLICATES)
+  // -------------------------------------------------------------
   const saveDraft = () => {
-    if (!activeConfig) return null;
-    const setter =
-      activeConfig.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+    if (!activeConfig) return;
+
+    const isVoucher = activeConfig.type === "voucher";
+    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => {
-      const exists = prev.find((i) => i.id === activeConfig.id);
+      const exists = prev.some((i) => i.id === activeConfig.id);
+
       if (exists) {
         return prev.map((i) =>
           i.id === activeConfig.id ? { ...activeConfig } : i,
         );
       }
+
       return [
         {
           ...activeConfig,
           createdAt: "Just now",
-          isPredefined: false,
           isActive: false,
+          isPredefined: false,
         },
         ...prev,
       ];
@@ -267,154 +180,144 @@ export default function ConfettiApp() {
     return activeConfig;
   };
 
-  const markActiveInState = (item) => {
-    const setter =
-      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
-
-    setter((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
-
-      if (exists) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, isActive: true } : i,
-        );
-      }
-
-      return [
-        { ...item, isActive: true, isPredefined: false, createdAt: "Just now" },
-        ...prev,
-      ];
-    });
-  };
-
-  const markInactiveInState = (itemId, type) => {
-    const setter = type === "confetti" ? setSavedConfetti : setSavedVouchers;
-
-    setter((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, isActive: false } : i)),
-    );
-  };
-
-  // shared activation request (used by Toggle + Editor)
+  // -------------------------------------------------------------
+  // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”
+  // -------------------------------------------------------------
   const requestActivation = async (item) => {
     const triggerEvent = await showTriggerEventModal();
-    if (!triggerEvent) return;
+    if (!triggerEvent) return; // canceled
 
-    await activateConfetti(item, triggerEvent);
-    setShowInstructions(true);
+    const trigger =
+      typeof triggerEvent === "string"
+        ? triggerEvent
+        : triggerEvent.event || "page_load";
 
-    const setter =
-      item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
+    const isVoucher = item.type === "voucher";
+
+    // 1) Deactivate others with SAME TYPE & SAME TRIGGER
+    if (isVoucher) {
+      setSavedVouchers((prev) =>
+        prev.map((p) =>
+          p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
+        ),
+      );
+    } else {
+      setSavedConfetti((prev) =>
+        prev.map((p) =>
+          p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
+        ),
+      );
+    }
+
+    // 2) mark THIS ONE active
+    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
+      const exists = prev.some((i) => i.id === item.id);
 
       if (exists) {
         return prev.map((i) =>
-          i.id === item.id ? { ...i, isActive: true } : i,
+          i.id === item.id ? { ...i, isActive: true, trigger } : i,
         );
       }
 
-      // 🔥 THIS WAS MISSING
+      // template activated → add to saved section
       return [
-        { ...item, isActive: true, isPredefined: false, createdAt: "Just now" },
+        {
+          ...item,
+          isActive: true,
+          isPredefined: false,
+          createdAt: "Just now",
+          trigger,
+        },
         ...prev,
       ];
     });
+
+    // send to Shopify backend
+    await activateConfetti(item, triggerEvent);
+
+    setShowInstructions(true);
   };
 
-  // shared deactivation
+  // -------------------------------------------------------------
+  // 🟧 9) DEACTIVATE LOGIC (DO NOT DELETE FROM SAVED)
+  // -------------------------------------------------------------
   const requestDeactivation = async (item) => {
+    const isVoucher = item.type === "voucher";
+    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
+
+    setter((prev) =>
+      prev.map((p) => (p.id === item.id ? { ...p, isActive: false } : p)),
+    );
+
     await deactivateConfetti(item.id);
-
-    const setter =
-      item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
-
-    setter((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, isActive: false } : i)),
-    );
-
-    // 🔥 THIS IS THE MISSING PART
     setContentSource("saved");
   };
 
-  const forceDeactivateInUI = (item) => {
-    const setter =
-      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
-
-    setter((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, isActive: false } : i)),
-    );
-
-    setContentSource("saved");
-  };
-
+  // -------------------------------------------------------------
+  // 🟧 10) TOGGLE ACTIVE
+  // -------------------------------------------------------------
   const toggleActive = async (item) => {
-    const source = item.type === "confetti" ? savedConfetti : savedVouchers;
-
-    // try to get fresh state version
+    const source = item.type === "voucher" ? savedVouchers : savedConfetti;
     const freshItem = source.find((i) => i.id === item.id) || item;
 
-    // 🔴 DEACTIVATE
     if (freshItem.isActive) {
       await requestDeactivation(freshItem);
-      setContentSource("saved");
       return;
     }
 
-    // 🔵 ACTIVATE TEMPLATE (convert once)
+    // If predefined → convert then activate
     if (freshItem.isPredefined) {
-      const realType =
-        PREDEFINED_CONFETTI.find((t) => t.id === freshItem.id)?.type ||
-        PREDEFINED_VOUCHERS.find((t) => t.id === freshItem.id)?.type ||
-        freshItem.type; // fallback
-
       const newItem = {
         ...freshItem,
-        type: realType, // ✔ CRITICAL FIX
         id: Date.now().toString(),
         isPredefined: false,
         isActive: false,
         createdAt: "Just now",
+        type: freshItem.type,
       };
 
       const setter =
-        freshItem.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+        freshItem.type === "voucher" ? setSavedVouchers : setSavedConfetti;
+      setter((prev) => [newItem, ...prev]);
 
-      await requestActivation(newItem); // activation will save into saved section
-
+      await requestActivation(newItem);
       return;
     }
 
-    // 🟢 ACTIVATE SAVED DRAFT
     await requestActivation(freshItem);
   };
 
+  // -------------------------------------------------------------
+  // 🟧 11) DELETE DRAFT — DO NOT DELETE IF ACTIVE
+  // -------------------------------------------------------------
   const deleteDraft = async (item) => {
-    // if (item.isActive) {
-    //   await activateConfetti(item, triggerEvent);
-    //   setShowOnboarding(true);
-    // }
-
-    const setter =
-      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+    const isVoucher = item.type === "voucher";
+    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => prev.filter((i) => i.id !== item.id));
   };
 
+  // -------------------------------------------------------------
+  // 🟧 12) CURRENT LIST FOR DASHBOARD
+  // -------------------------------------------------------------
   const currentList =
     activeDraftTab === "confetti"
       ? contentSource === "predefined"
-        ? PREDEFINED_CONFETTI
+        ? PREDEFINED_CONFETTI.map((i) => ({ ...i, type: "confetti" }))
         : savedConfetti
       : contentSource === "predefined"
-        ? PREDEFINED_VOUCHERS
+        ? PREDEFINED_VOUCHERS.map((i) => ({ ...i, type: "voucher" }))
         : savedVouchers;
 
-  const filteredList = currentList.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredList = currentList.filter((i) =>
+    i.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // -------------------------------------------------------------
+  // 🟧 13) RENDER
+  // -------------------------------------------------------------
   return (
     <>
       {view === "dashboard" ? (
@@ -440,7 +343,7 @@ export default function ConfettiApp() {
         <EditorView
           activeConfig={activeConfig}
           setActiveConfig={setActiveConfig}
-          fire={fireConfetti}
+          fire={() => {}}
           saveDraft={saveDraft}
           setView={setView}
           savedConfetti={savedConfetti}

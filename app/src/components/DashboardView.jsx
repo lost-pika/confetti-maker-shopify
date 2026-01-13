@@ -1,4 +1,3 @@
-// app/src/components/DashboardView.jsx
 import React from "react";
 import { Search, Plus, Sparkles } from "lucide-react";
 import ConfettiCard from "./ConfettiCard";
@@ -20,21 +19,24 @@ export default function DashboardView({
   savedVouchers,
   toggleActive,
   onDeactivate,
-  forceDeactivateInUI,
 }) {
+  // ------------------------------------------
+  // ACTIVE ITEMS (no duplicates)
+  // ------------------------------------------
   const activeItems = [
     ...savedConfetti.filter((i) => i.isActive),
     ...savedVouchers.filter((i) => i.isActive),
   ];
 
+  // ------------------------------------------
+  // FILTER DISPLAY LIST
+  // ------------------------------------------
   const displayList = filteredList.filter((item) => {
-    // if (!item.isPredefined && item.isActive) return false;
-    // allow inactive saved items
-
+    // Remove predefined if already saved Active
     if (item.isPredefined) {
       return (
-        !savedConfetti.some((s) => s.title === item.title && s.isActive) &&
-        !savedVouchers.some((s) => s.title === item.title && s.isActive)
+        !savedConfetti.some((x) => x.title === item.title && x.isActive) &&
+        !savedVouchers.some((x) => x.title === item.title && x.isActive)
       );
     }
 
@@ -44,7 +46,7 @@ export default function DashboardView({
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       <div className="px-8 py-10 max-w-6xl mx-auto">
-        {/* Header */}
+        {/* HEADER */}
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-md">
@@ -60,8 +62,8 @@ export default function DashboardView({
             </div>
           </div>
 
+          {/* BUTTONS */}
           <div className="flex items-center gap-3">
-            {/* Instructions Button */}
             <button
               onClick={onShowInstructions}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-pink-500 text-white text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
@@ -69,11 +71,10 @@ export default function DashboardView({
               Instructions
             </button>
 
-            {/* Deep Link Button */}
             <a
               href={
                 shopDomain
-                  ? `https://admin.shopify.com/store/${shop}/themes/current/editor?context=apps`
+                  ? `https://admin.shopify.com/store/${shopDomain}/themes/current/editor?context=apps`
                   : "https://admin.shopify.com/themes"
               }
               target="_blank"
@@ -85,7 +86,7 @@ export default function DashboardView({
           </div>
         </div>
 
-        {/* Hero Banner */}
+        {/* HERO — Only when NO active items */}
         {activeItems.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-10 flex flex-col items-center justify-center text-center gap-6 shadow-sm mb-10">
             <div>
@@ -107,7 +108,7 @@ export default function DashboardView({
           </div>
         )}
 
-        {/* Stats */}
+        {/* STATISTICS */}
         <div className="grid grid-cols-3 gap-6 mb-10">
           {[
             { value: savedConfetti.length, label: "Confetti Created" },
@@ -128,7 +129,7 @@ export default function DashboardView({
           ))}
         </div>
 
-        {/* Active on storefront */}
+        {/* ACTIVE ON STOREFRONT */}
         {activeItems.length > 0 && (
           <section className="mb-10">
             <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -138,13 +139,13 @@ export default function DashboardView({
               </span>
               Active on Storefront
             </h3>
+
             <div className="grid grid-cols-1 gap-4">
               {activeItems.map((item) => (
                 <ConfettiCard
                   key={item.id}
                   item={item}
                   isActive={item.isActive}
-                  activeDraftTab={item.type}
                   onToggle={toggleActive}
                   onEdit={handleEditDraft}
                   onDelete={() => {
@@ -157,13 +158,15 @@ export default function DashboardView({
           </section>
         )}
 
-        {/* Drafts */}
+        {/* DRAFTS SECTION */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-900">
                 {contentSource === "saved" ? "Saved Drafts" : "Templates"}
               </h3>
+
+              {/* TABS */}
               <div className="inline-flex rounded-lg bg-white border border-slate-200 p-1 gap-1 shadow-sm">
                 {["confetti", "voucher"].map((tab) => (
                   <button
@@ -184,6 +187,7 @@ export default function DashboardView({
               </div>
             </div>
 
+            {/* SEARCH */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -195,6 +199,7 @@ export default function DashboardView({
               />
             </div>
 
+            {/* SAVED/TEMPLATE SWITCH + ADD BUTTON */}
             <div className="flex items-center gap-3">
               <div className="inline-flex rounded-lg bg-white border border-slate-200 p-1 gap-1 shadow-sm">
                 {["saved", "predefined"].map((source) => (
@@ -211,6 +216,7 @@ export default function DashboardView({
                   </button>
                 ))}
               </div>
+
               <button
                 onClick={handleCreateNew}
                 className="w-9 h-9 rounded-lg bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-colors shadow-sm"
@@ -220,17 +226,17 @@ export default function DashboardView({
             </div>
           </div>
 
+          {/* LIST */}
           <div className="space-y-3">
             {displayList.length > 0 ? (
               displayList.map((item) => (
                 <ConfettiCard
                   key={item.id}
-                  item={item}
+                  item={item} // ✔ correct always
                   isActive={item.isActive}
-                  activeDraftTab={item.type} // ✔ FIX
                   onToggle={toggleActive}
                   onEdit={handleEditDraft}
-                  onDelete={() => deleteDraft(item)}
+                  onDelete={() => deleteDraft(item)} // ✔ fixed delete
                 />
               ))
             ) : (

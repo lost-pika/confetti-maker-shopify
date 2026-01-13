@@ -63,18 +63,15 @@
   }
 
   function renderVoucher(config) {
-  if (config?.type !== "voucher") return;
+    if (config?.type !== "voucher") return;
 
-  const root = document.getElementById("confetti-launcher-root");
-  if (!root) return;
+    const root = document.getElementById("confetti-launcher-root");
+    if (!root) return;
 
-  const code =
-    config.code ||
-    config.voucherCode ||
-    config.voucher?.code ||
-    "";
+    const code =
+      config.code || config.voucherCode || config.voucher?.code || "";
 
-  const html = `
+    const html = `
     <div id="confetti-voucher-card" style="
       position: fixed;
       top: 20px;
@@ -83,7 +80,7 @@
       z-index: 999999;
       background: white;
       border-radius: 18px;
-      padding: 24px 28px;
+      padding: 24px 28px 32px;
       width: 340px;
       box-shadow: 0 12px 40px rgba(0,0,0,0.12);
       text-align: center;
@@ -91,6 +88,19 @@
       animation: fadeSlideIn 0.6s ease-out forwards;
       opacity: 0;
     ">
+      
+      <!-- ❌ Close Button -->
+      <div id="confetti-voucher-close" style="
+        position:absolute;
+        top:10px;
+        right:12px;
+        font-size:18px;
+        cursor:pointer;
+        color:#64748b;
+        font-weight:600;
+        padding:4px;
+      ">&times;</div>
+
       <div style="font-size: 15px; font-weight: 600; color:#111;">
         ${config.title}
       </div>
@@ -118,8 +128,21 @@
     </style>
   `;
 
-  root.innerHTML = html;
-}
+    root.innerHTML = html;
+
+    // 🎯 Add close button handler
+    const closeBtn = document.getElementById("confetti-voucher-close");
+    const card = document.getElementById("confetti-voucher-card");
+
+    if (closeBtn && card) {
+      closeBtn.addEventListener("click", () => {
+        card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        card.style.opacity = "0";
+        card.style.transform = "translate(-50%, -20px)";
+        setTimeout(() => card.remove(), 300);
+      });
+    }
+  }
 
   function init() {
     const settings = window.__CONFETTI_SETTINGS__;

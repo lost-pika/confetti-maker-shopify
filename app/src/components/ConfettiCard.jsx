@@ -1,4 +1,3 @@
-// app/src/components/ConfettiCard.jsx
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -6,7 +5,6 @@ import { ToggleSwitch } from "./ToggleSwitch";
 export default function ConfettiCard({
   item,
   isActive,
-  activeDraftTab,
   onToggle,
   onEdit,
   onDelete,
@@ -19,7 +17,9 @@ export default function ConfettiCard({
           : "border-slate-200 hover:border-orange-300"
       }`}
     >
+      {/* LEFT SECTION */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
+        {/* ICON */}
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${
             item.type === "confetti"
@@ -30,25 +30,29 @@ export default function ConfettiCard({
           {item.type === "confetti" ? "⚡" : "🎫"}
         </div>
 
+        {/* TEXT */}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-sm text-slate-900 truncate">
               {item.title}
             </h4>
+
             {isActive && (
               <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                 Live
               </span>
             )}
           </div>
+
           <p className="text-xs text-slate-500 font-medium uppercase tracking-tight">
             {item.isPredefined ? "Template" : item.createdAt || "Just now"}
           </p>
         </div>
       </div>
 
+      {/* RIGHT SECTION */}
       <div className="flex items-center gap-4">
-        {/* 🔥 TOGGLE — stop bubbling HERE */}
+        {/* TOGGLE */}
         <div
           className="flex items-center gap-2 pr-4 border-r border-slate-100"
           onClick={(e) => e.stopPropagation()}
@@ -64,10 +68,11 @@ export default function ConfettiCard({
           <ToggleSwitch active={isActive} onToggle={() => onToggle(item)} />
         </div>
 
+        {/* ACTION BUTTONS */}
         <div className="flex items-center gap-2">
           {!item.isPredefined ? (
             <>
-              {/* ✏️ EDIT */}
+              {/* EDIT */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -79,12 +84,11 @@ export default function ConfettiCard({
                 <Edit2 className="w-4 h-4" />
               </button>
 
-              {/* 🗑️ DELETE */}
+              {/* DELETE (fixed: sends full item object) */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(item)     // pass whole item
-
+                  onDelete(item); // ✔ FULL ITEM
                 }}
                 className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
                 title="Delete"

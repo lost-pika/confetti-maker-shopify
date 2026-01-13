@@ -461,7 +461,7 @@ export default function ConfettiApp() {
         <EditorView
           activeConfig={activeConfig}
           setActiveConfig={setActiveConfig}
-          fire={() => {}}
+          fire={fire}
           saveDraft={saveDraft}
           setView={setView}
           savedConfetti={savedConfetti}

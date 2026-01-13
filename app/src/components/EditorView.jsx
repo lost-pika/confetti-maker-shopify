@@ -24,6 +24,22 @@ export default function EditorView({
 
   const isVoucher = activeConfig.type === "voucher";
 
+  const buildFirePayload = (config) => ({
+    particleCount: config.particleCount ?? 200,
+    spread: config.spread ?? 90,
+    gravity: config.gravity ?? 1.0,
+    colors: config.colors ?? ["#FFB396"],
+    shapes: config.shapes?.length ? config.shapes : ["circle"],
+
+    // REQUIRED defaults (your old version always included these)
+    origin: { x: 0.5, y: 0.6 },
+    startVelocity: 45,
+    decay: 0.9,
+    drift: 0,
+
+    burstType: config.burstType ?? "cannon",
+  });
+
   const ensureConfettiLoaded = () => {
     return new Promise((resolve) => {
       if (window.confetti) {
@@ -46,13 +62,12 @@ export default function EditorView({
       : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
   const handleTest = async () => {
-  await ensureConfettiLoaded();
+    await ensureConfettiLoaded();
 
-  if (typeof fire === "function") {
-    fire(activeConfig);
-  }
-};
-
+    if (typeof fire === "function") {
+      fire(buildFirePayload(activeConfig)); // <-- FIXED
+    }
+  };
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">

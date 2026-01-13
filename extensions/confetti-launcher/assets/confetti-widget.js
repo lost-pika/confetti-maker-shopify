@@ -145,48 +145,49 @@
   }
 
   function init() {
-    const settings = window.__CONFETTI_SETTINGS__;
-    if (!settings?.config) return;
+  const settings = window.__CONFETTI_SETTINGS__;
+  if (!settings?.config) return;
 
-    const config = settings.config;
-    const trigger = settings.trigger;
+  const config = settings.config;
+  const trigger = settings.trigger;
+  if (!trigger) return;
 
-    if (!trigger) return;
+  const today = new Date();
+  const mmddToday = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+    today.getDate()
+  ).padStart(2, "0")}`;
 
-    const today = new Date();
-    const mmddToday = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(
-      today.getDate(),
-    ).padStart(2, "0")}`;
+  // PAGE LOAD
+  if (trigger.event === "page_load") {
+    fireConfetti(config);
+  }
 
-    // PAGE LOAD
-    if (trigger.event === "page_load") {
+  // PURCHASE COMPLETE
+  if (trigger.event === "purchase_complete") {
+    if (window.Shopify?.checkout) {
       fireConfetti(config);
     }
-
-    // PURCHASE COMPLETE
-    if (trigger.event === "purchase_complete") {
-      if (window.Shopify?.checkout) {
-        fireConfetti(config);
-      }
-    }
-
-    // NEW YEAR
-    if (trigger.event === "new_year") {
-      if (mmddToday === "01-01") {
-        fireConfetti(config);
-      }
-    }
-
-    // CUSTOM DATE
-    if (trigger.event === "custom_date" && trigger.date) {
-      if (mmddToday === trigger.date) {
-        fireConfetti(config);
-      }
-    }
-
-    // Show voucher UI
-    renderVoucher(config);
   }
+
+  // NEW YEAR — January 1
+  if (trigger.event === "new_year") {
+    if (mmddToday === "01-01") {
+      fireConfetti(config);
+    }
+  }
+
+  // CUSTOM DATE — FIXED VERSION
+  if (trigger.event === "custom_date") {
+    const date = trigger.date || trigger.customDate;
+    if (date && mmddToday === date) {
+      fireConfetti(config);
+    }
+  }
+
+  // Show voucher UI
+  renderVoucher(config);
+}
+
 
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => waitForConfetti(init));

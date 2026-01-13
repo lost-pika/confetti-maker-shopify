@@ -157,14 +157,23 @@ export default function ConfettiApp() {
     const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => {
-      const exists = prev.some((i) => i.id === activeConfig.id);
+      // 🟢 Check by title + type to prevent duplicates
+      const existing = prev.find(
+        (i) =>
+          i.title.trim().toLowerCase() ===
+          activeConfig.title.trim().toLowerCase(),
+      );
 
-      if (exists) {
+      // Update existing one
+      if (existing) {
         return prev.map((i) =>
-          i.id === activeConfig.id ? { ...activeConfig } : i,
+          i.id === existing.id
+            ? { ...existing, ...activeConfig, id: existing.id } // ID stays same
+            : i,
         );
       }
 
+      // Create new
       return [
         {
           ...activeConfig,
@@ -213,15 +222,27 @@ export default function ConfettiApp() {
     const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => {
-      const exists = prev.some((i) => i.id === item.id);
+      // 🟢 Prevent duplicates by matching title + type
+      const existing = prev.find(
+        (i) => i.title.trim().toLowerCase() === item.title.trim().toLowerCase(),
+      );
 
-      if (exists) {
+      // Update existing
+      if (existing) {
         return prev.map((i) =>
-          i.id === item.id ? { ...i, isActive: true, trigger } : i,
+          i.id === existing.id
+            ? {
+                ...existing,
+                ...item,
+                isActive: true,
+                isPredefined: false,
+                trigger,
+              }
+            : i,
         );
       }
 
-      // template activated → add to saved section
+      // Insert new
       return [
         {
           ...item,

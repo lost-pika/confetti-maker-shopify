@@ -7,21 +7,21 @@ const TRIGGER_EVENTS = [
     label: "On page load",
     description: "Fire confetti when the page loads.",
   },
-  {
-    id: "purchase_complete",
-    label: "On purchase complete",
-    description: "Celebrate when an order is completed.",
-  },
+  // {
+  //   id: "purchase_complete",
+  //   label: "On purchase complete",
+  //   description: "Celebrate when an order is completed.",
+  // },
   {
     id: "new_year",
     label: "On New Year",
     description: "Show confetti on January 1st.",
   },
-  {
-    id: "custom_date",
-    label: "On a custom date",
-    description: "Pick a specific month and day.",
-  },
+  // {
+  //   id: "custom_date",
+  //   label: "On a custom date",
+  //   description: "Pick a specific month and day.",
+  // },
 ];
 
 export function TriggerEventModal({ onSelect, onClose }) {

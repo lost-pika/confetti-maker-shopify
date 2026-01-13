@@ -22,12 +22,12 @@ export default function ConfettiCard({
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${
-            activeDraftTab === "confetti"
+            item.type === "confetti"
               ? "bg-orange-50 text-orange-600"
               : "bg-pink-50 text-pink-600"
           }`}
         >
-          {activeDraftTab === "confetti" ? "⚡" : "🎫"}
+          {item.type === "confetti" ? "⚡" : "🎫"}
         </div>
 
         <div className="min-w-0">
@@ -61,10 +61,7 @@ export default function ConfettiCard({
             {isActive ? "Active" : "Inactive"}
           </span>
 
-          <ToggleSwitch
-            active={isActive}
-            onToggle={() => onToggle(item)}
-          />
+          <ToggleSwitch active={isActive} onToggle={() => onToggle(item)} />
         </div>
 
         <div className="flex items-center gap-2">

@@ -25,20 +25,19 @@ export default function EditorView({
   const isVoucher = activeConfig.type === "voucher";
 
   const ensureConfettiLoaded = () => {
-  return new Promise((resolve) => {
-    if (window.confetti) {
-      resolve();
-      return;
-    }
+    return new Promise((resolve) => {
+      if (window.confetti) {
+        resolve();
+        return;
+      }
 
-    const script = document.createElement("script");
-    script.src =
-      "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
-    script.onload = resolve;
-    document.body.appendChild(script);
-  });
-};
-
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
+  };
 
   // Determine active state based on correct type
   const isActive =
@@ -47,17 +46,22 @@ export default function EditorView({
       : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
   const handleTest = async () => {
-  await ensureConfettiLoaded();
+    await ensureConfettiLoaded();
 
-  // Fix for voucher (no shapes)
-  const fixedConfig = {
-    ...activeConfig,
-    shapes: activeConfig.shapes?.length ? activeConfig.shapes : ["circle"],
+    // Fix vouchers – they have no shapes
+    const fixedConfig = {
+      ...activeConfig,
+      shapes:
+        activeConfig.shapes?.length > 0 ? activeConfig.shapes : ["circle"],
+
+      origin: activeConfig.origin || { x: 0.5, y: 0.6 },
+      startVelocity: activeConfig.startVelocity || 45,
+      decay: activeConfig.decay || 0.9,
+      drift: activeConfig.drift || 0,
+    };
+
+    fire(fixedConfig);
   };
-
-  fire(fixedConfig);
-};
-
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">

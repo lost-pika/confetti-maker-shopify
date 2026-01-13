@@ -46,22 +46,13 @@ export default function EditorView({
       : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
   const handleTest = async () => {
-    await ensureConfettiLoaded();
+  await ensureConfettiLoaded();
 
-    // Fix vouchers – they have no shapes
-    const fixedConfig = {
-      ...activeConfig,
-      shapes:
-        activeConfig.shapes?.length > 0 ? activeConfig.shapes : ["circle"],
+  if (typeof fire === "function") {
+    fire(activeConfig);
+  }
+};
 
-      origin: activeConfig.origin || { x: 0.5, y: 0.6 },
-      startVelocity: activeConfig.startVelocity || 45,
-      decay: activeConfig.decay || 0.9,
-      drift: activeConfig.drift || 0,
-    };
-
-    fire(fixedConfig);
-  };
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">

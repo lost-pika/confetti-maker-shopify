@@ -152,54 +152,60 @@
   /* -----------------------------------------------------------
      INIT — MAIN TRIGGER LOGIC
   ----------------------------------------------------------- */
-  function init() {
-    const raw = window.__CONFETTI_SETTINGS__;
-    if (!raw) return;
+ function init() {
+  const raw = window.__CONFETTI_SETTINGS__;
+  if (!raw) return;
 
-    // Extract correct parts
-    const config = raw.config?.confettiConfig || raw.config;
-    let trigger = raw.config?.triggerEvent || raw.trigger;
+  // Always pick the right objects
+  const config =
+    raw.config?.confettiConfig ||
+    raw.config ||
+    raw.confettiConfig;
 
-    if (!config || !trigger) return;
+  let trigger =
+    raw.trigger ||
+    raw.config?.triggerEvent ||
+    raw.triggerEvent;
 
-    // Shopify sometimes outputs JSON string
-    try {
-      if (typeof trigger === "string") trigger = JSON.parse(trigger);
-    } catch (e) {}
+  if (!config || !trigger) return;
 
-    if (!trigger.event) return;
+  // Ensure trigger is object
+  try {
+    if (typeof trigger === "string") trigger = JSON.parse(trigger);
+  } catch (e) {}
 
-    const today = new Date();
-    const mmddToday =
-      String(today.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(today.getDate()).padStart(2, "0");
+  if (!trigger.event) return;
 
-    // PAGE LOAD
-    if (trigger.event === "page_load") {
-      fireConfetti(config);
-    }
+  const today = new Date();
+  const mmddToday =
+    String(today.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(today.getDate()).padStart(2, "0");
 
-    // PURCHASE COMPLETE
-    if (trigger.event === "purchase_complete") {
-      if (window.Shopify?.checkout) fireConfetti(config);
-    }
-
-    // NEW YEAR
-    if (trigger.event === "new_year" && mmddToday === "01-01") {
-      fireConfetti(config);
-    }
-
-    // CUSTOM DATE
-    if (trigger.event === "custom_date") {
-      const target = trigger.date || trigger.customDate;
-      if (target && target === mmddToday) {
-        fireConfetti(config);
-      }
-    }
-
-    renderVoucher(config);
+  // PAGE LOAD
+  if (trigger.event === "page_load") {
+    fireConfetti(config);
   }
+
+  // PURCHASE COMPLETE
+  if (trigger.event === "purchase_complete") {
+    if (window.Shopify?.checkout) fireConfetti(config);
+  }
+
+  // NEW YEAR
+  if (trigger.event === "new_year" && mmddToday === "01-01") {
+    fireConfetti(config);
+  }
+
+  // CUSTOM DATE
+  if (trigger.event === "custom_date") {
+    const target = trigger.date;
+    if (target === mmddToday) fireConfetti(config);
+  }
+
+  // Voucher UI
+  renderVoucher(config);
+}
 
   // Run init after confetti loads
   if (document.readyState === "loading")

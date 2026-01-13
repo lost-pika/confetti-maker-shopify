@@ -149,15 +149,42 @@
     if (!settings?.config) return;
 
     const config = settings.config;
+    const trigger = settings.trigger;
 
-    // 🎉 Fire confetti based on trigger
-    if (settings.trigger === "page_load") fireConfetti(config);
+    if (!trigger) return;
 
-    if (settings.trigger === "purchase_complete") {
-      if (window.Shopify?.checkout) fireConfetti(config);
+    const today = new Date();
+    const mmddToday = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+      today.getDate(),
+    ).padStart(2, "0")}`;
+
+    // PAGE LOAD
+    if (trigger.event === "page_load") {
+      fireConfetti(config);
     }
 
-    // 🎟 Render voucher UI
+    // PURCHASE COMPLETE
+    if (trigger.event === "purchase_complete") {
+      if (window.Shopify?.checkout) {
+        fireConfetti(config);
+      }
+    }
+
+    // NEW YEAR
+    if (trigger.event === "new_year") {
+      if (mmddToday === "01-01") {
+        fireConfetti(config);
+      }
+    }
+
+    // CUSTOM DATE
+    if (trigger.event === "custom_date" && trigger.date) {
+      if (mmddToday === trigger.date) {
+        fireConfetti(config);
+      }
+    }
+
+    // Show voucher UI
     renderVoucher(config);
   }
 

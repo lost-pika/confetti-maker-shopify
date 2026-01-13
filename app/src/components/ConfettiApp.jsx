@@ -243,48 +243,48 @@ export default function ConfettiApp() {
   // 🟧 7) SAVE DRAFT (NO DUPLICATES)
   // -------------------------------------------------------------
   const saveDraft = () => {
-    if (!activeConfig) return null;
+  if (!activeConfig) return null;
 
-    const setter =
-      activeConfig.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+  const item = activeConfig;
+  const setter =
+    item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-    setter((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
+  setter((prev) => {
+    const exists = prev.find((i) => i.id === item.id);
 
-      let updated;
+    let updated;
 
-      if (exists) {
-        updated = prev.map((i) =>
-          i.id === item.id ? { ...i, isActive: true } : i,
-        );
-      } else {
-        updated = [
-          {
-            ...item,
-            isActive: true,
-            isPredefined: false,
-            createdAt: "Just now",
-          },
-          ...prev,
-        ];
-      }
+    if (exists) {
+      updated = prev.map((i) =>
+        i.id === item.id ? { ...i, ...item } : i
+      );
+    } else {
+      updated = [
+        {
+          ...item,
+          isActive: false,
+          isPredefined: false,
+          createdAt: "Just now",
+        },
+        ...prev,
+      ];
+    }
 
-      // 🔥 REMOVE DUPLICATES BY TITLE
-      updated = dedupeByTitle(updated);
+    updated = dedupeByTitle(updated);
 
-      // SAVE
-      if (item.type === "confetti") {
-        localStorage.setItem("savedConfetti", JSON.stringify(updated));
-      } else {
-        localStorage.setItem("savedVouchers", JSON.stringify(updated));
-      }
+    if (item.type === "confetti") {
+      localStorage.setItem("savedConfetti", JSON.stringify(updated));
+    } else {
+      localStorage.setItem("savedVouchers", JSON.stringify(updated));
+    }
 
-      return updated;
-    });
+    return updated;
+  });
 
-    setView("dashboard");
-    return activeConfig;
-  };
+  setView("dashboard");
+  return item;
+};
+
 
   // -------------------------------------------------------------
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”

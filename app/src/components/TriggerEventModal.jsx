@@ -25,15 +25,14 @@ const TRIGGER_EVENTS = [
 ];
 
 export function TriggerEventModal({ onSelect, onClose }) {
-  const [selectedEvent, setSelectedEvent] = useState(TRIGGER_EVENTS[0].id);
-  const [customDate, setCustomDate] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState("page_load");
+  const [date, setDate] = useState("");
 
   const handleConfirm = () => {
-    const payload = {
+    onSelect({
       event: selectedEvent,
-      customDate: selectedEvent === "custom_date" ? customDate : null,
-    };
-    onSelect(payload);
+      date: selectedEvent === "custom_date" ? date : null,
+    });
   };
 
   return (
@@ -44,25 +43,25 @@ export function TriggerEventModal({ onSelect, onClose }) {
         </h2>
 
         <div className="space-y-3 mb-6">
-          {TRIGGER_EVENTS.map((event) => (
+          {TRIGGER_EVENTS.map((ev) => (
             <label
-              key={event.id}
+              key={ev.id}
               className="flex items-start gap-3 p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
             >
               <input
                 type="radio"
                 name="trigger-event"
-                value={event.id}
-                checked={selectedEvent === event.id}
+                value={ev.id}
+                checked={selectedEvent === ev.id}
                 onChange={(e) => setSelectedEvent(e.target.value)}
                 className="mt-1 cursor-pointer"
               />
               <div>
                 <div className="font-bold text-sm text-slate-900">
-                  {event.label}
+                  {ev.label}
                 </div>
                 <div className="text-xs text-slate-500">
-                  {event.description}
+                  {ev.description}
                 </div>
               </div>
             </label>
@@ -77,8 +76,8 @@ export function TriggerEventModal({ onSelect, onClose }) {
             <input
               type="text"
               placeholder="01-15"
-              value={customDate}
-              onChange={(e) => setCustomDate(e.target.value)}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
             />
           </div>

@@ -37,6 +37,23 @@ export default function ConfettiApp() {
   const [shopDomain, setShopDomain] = useState(null);
 
   useEffect(() => {
+  const confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
+  const vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
+
+  setSavedConfetti(confetti);
+  setSavedVouchers(vouchers);
+}, []);
+
+useEffect(() => {
+  localStorage.setItem("savedConfetti", JSON.stringify(savedConfetti));
+}, [savedConfetti]);
+
+useEffect(() => {
+  localStorage.setItem("savedVouchers", JSON.stringify(savedVouchers));
+}, [savedVouchers]);
+
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       setShopDomain(window.Shopify?.shop || null);
     }
@@ -173,6 +190,9 @@ export default function ConfettiApp() {
   useEffect(() => {
     if (view === "dashboard") setActiveConfig(null);
   }, [view]);
+
+  
+
 
   const handleCreateNew = (typeOverride) => {
     const type =

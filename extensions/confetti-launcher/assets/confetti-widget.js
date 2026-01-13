@@ -1,9 +1,15 @@
 (function () {
+  /* -----------------------------------------------------------
+     WAIT UNTIL CONFETTI LIBRARY LOADS
+  ----------------------------------------------------------- */
   function waitForConfetti(cb) {
     if (window.confetti) cb();
     else setTimeout(() => waitForConfetti(cb), 50);
   }
 
+  /* -----------------------------------------------------------
+     FIRE CONFETTI
+  ----------------------------------------------------------- */
   function fireConfetti(cfg) {
     if (!cfg || !window.confetti) return;
 
@@ -17,7 +23,7 @@
     };
 
     switch (cfg.burstType) {
-      case "fireworks": {
+      case "fireworks":
         for (let i = 0; i < 3; i++) {
           window.confetti({
             ...base,
@@ -31,7 +37,6 @@
           });
         }
         break;
-      }
 
       case "snow":
         window.confetti({
@@ -62,6 +67,9 @@
     }
   }
 
+  /* -----------------------------------------------------------
+     VOUCHER CARD RENDERING
+  ----------------------------------------------------------- */
   function renderVoucher(config) {
     if (config?.type !== "voucher") return;
 
@@ -72,71 +80,68 @@
       config.code || config.voucherCode || config.voucher?.code || "";
 
     const html = `
-    <div id="confetti-voucher-card" style="
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 999999;
-      background: white;
-      border-radius: 18px;
-      padding: 24px 28px 32px;
-      width: 340px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-      text-align: center;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      animation: fadeSlideIn 0.6s ease-out forwards;
-      opacity: 0;
-    ">
-      
-      <!-- ❌ Close Button -->
-      <div id="confetti-voucher-close" style="
-        position:absolute;
-        top:10px;
-        right:12px;
-        font-size:18px;
-        cursor:pointer;
-        color:#64748b;
-        font-weight:600;
-        padding:4px;
-      ">&times;</div>
-
-      <div style="font-size: 15px; font-weight: 600; color:#111;">
-        ${config.title}
-      </div>
-
-      <div style="
-        margin-top: 12px;
-        padding: 14px;
-        background:#f5f7fa;
-        border-radius: 12px;
-        font-weight: 700;
-        letter-spacing: 0.25em;
-        font-size: 18px;
-        color:#1e293b;
-        border: 1px solid #e2e8f0;
+      <div id="confetti-voucher-card" style="
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999999;
+        background: white;
+        border-radius: 18px;
+        padding: 24px 28px 32px;
+        width: 340px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        animation: fadeSlideIn 0.6s ease-out forwards;
+        opacity: 0;
       ">
-        ${code}
-      </div>
-    </div>
+        <div id="confetti-voucher-close" style="
+          position:absolute;
+          top:10px;
+          right:12px;
+          font-size:18px;
+          cursor:pointer;
+          color:#64748b;
+          font-weight:600;
+          padding:4px;
+        ">&times;</div>
 
-    <style>
-      @keyframes fadeSlideIn {
-        0% { opacity: 0; transform: translate(-50%, -20px); }
-        100% { opacity: 1; transform: translate(-50%, 0); }
-      }
-    </style>
-  `;
+        <div style="font-size: 15px; font-weight: 600; color:#111;">
+          ${config.title}
+        </div>
+
+        <div style="
+          margin-top: 12px;
+          padding: 14px;
+          background:#f5f7fa;
+          border-radius: 12px;
+          font-weight: 700;
+          letter-spacing: 0.25em;
+          font-size: 18px;
+          color:#1e293b;
+          border: 1px solid #e2e8f0;
+        ">
+          ${code}
+        </div>
+      </div>
+
+      <style>
+        @keyframes fadeSlideIn {
+          0% { opacity: 0; transform: translate(-50%, -20px); }
+          100% { opacity: 1; transform: translate(-50%, 0); }
+        }
+      </style>
+    `;
 
     root.innerHTML = html;
 
-    // 🎯 Add close button handler
     const closeBtn = document.getElementById("confetti-voucher-close");
     const card = document.getElementById("confetti-voucher-card");
 
     if (closeBtn && card) {
       closeBtn.addEventListener("click", () => {
-        card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        card.style.transition = "opacity 0.3s, transform 0.3s";
         card.style.opacity = "0";
         card.style.transform = "translate(-50%, -20px)";
         setTimeout(() => card.remove(), 300);
@@ -144,51 +149,59 @@
     }
   }
 
+  /* -----------------------------------------------------------
+     INIT — MAIN TRIGGER LOGIC
+  ----------------------------------------------------------- */
   function init() {
-  const settings = window.__CONFETTI_SETTINGS__;
-  if (!settings?.config) return;
+    const raw = window.__CONFETTI_SETTINGS__;
+    if (!raw) return;
 
-  const config = settings.config;
-  const trigger = settings.trigger;
-  if (!trigger) return;
+    // Extract correct parts
+    const config = raw.config?.confettiConfig || raw.config;
+    let trigger = raw.config?.triggerEvent || raw.trigger;
 
-  const today = new Date();
-  const mmddToday = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(
-    today.getDate()
-  ).padStart(2, "0")}`;
+    if (!config || !trigger) return;
 
-  // PAGE LOAD
-  if (trigger.event === "page_load") {
-    fireConfetti(config);
-  }
+    // Shopify sometimes outputs JSON string
+    try {
+      if (typeof trigger === "string") trigger = JSON.parse(trigger);
+    } catch (e) {}
 
-  // PURCHASE COMPLETE
-  if (trigger.event === "purchase_complete") {
-    if (window.Shopify?.checkout) {
+    if (!trigger.event) return;
+
+    const today = new Date();
+    const mmddToday =
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    // PAGE LOAD
+    if (trigger.event === "page_load") {
       fireConfetti(config);
     }
-  }
 
-  // NEW YEAR — January 1
-  if (trigger.event === "new_year") {
-    if (mmddToday === "01-01") {
+    // PURCHASE COMPLETE
+    if (trigger.event === "purchase_complete") {
+      if (window.Shopify?.checkout) fireConfetti(config);
+    }
+
+    // NEW YEAR
+    if (trigger.event === "new_year" && mmddToday === "01-01") {
       fireConfetti(config);
     }
-  }
 
-  // CUSTOM DATE — FIXED VERSION
-  if (trigger.event === "custom_date") {
-    const date = trigger.date || trigger.customDate;
-    if (date && mmddToday === date) {
-      fireConfetti(config);
+    // CUSTOM DATE
+    if (trigger.event === "custom_date") {
+      const target = trigger.date || trigger.customDate;
+      if (target && target === mmddToday) {
+        fireConfetti(config);
+      }
     }
+
+    renderVoucher(config);
   }
 
-  // Show voucher UI
-  renderVoucher(config);
-}
-
-
+  // Run init after confetti loads
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => waitForConfetti(init));
   else waitForConfetti(init);

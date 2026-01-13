@@ -68,32 +68,33 @@
     const root = document.getElementById("confetti-launcher-root");
     if (!root) return;
 
-    const code = config.voucherCode || config.voucher?.code || "";
+    const code =
+      config.code || config.voucherCode || config.voucher?.code || "";
 
     const html = `
+    <div style="
+      max-width: 360px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      font-family: sans-serif;
+    ">
+      <div style="font-size: 14px; color:#555;">${config.title}</div>
       <div style="
-        max-width: 360px;
-        margin: 20px auto;
-        padding: 20px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        text-align: center;
-        font-family: sans-serif;
+        margin-top: 10px;
+        padding: 12px;
+        background:#f4f6f8;
+        border-radius: 10px;
+        font-weight: bold;
+        letter-spacing: 3px;
       ">
-        <div style="font-size: 14px; color:#555;">${config.title}</div>
-        <div style="
-          margin-top: 10px;
-          padding: 12px;
-          background:#f4f6f8;
-          border-radius: 10px;
-          font-weight: bold;
-          letter-spacing: 3px;
-        ">
-          ${code}
-        </div>
+        ${code}
       </div>
-    `;
+    </div>
+  `;
 
     root.innerHTML = html;
   }

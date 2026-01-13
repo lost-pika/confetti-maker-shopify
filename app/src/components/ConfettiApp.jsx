@@ -58,6 +58,68 @@ export default function ConfettiApp() {
     });
   }
 
+  const fire = (cfg) => {
+  if (!window.confetti) return;
+
+  const base = {
+    particleCount: cfg.particleCount || 150,
+    spread: cfg.spread || 70,
+    gravity: cfg.gravity ?? 1,
+    origin: cfg.origin || { x: 0.5, y: 0.6 },
+    colors: cfg.colors,
+    shapes: cfg.shapes,
+    startVelocity: cfg.startVelocity || 45,
+    decay: cfg.decay || 0.9,
+    drift: cfg.drift || 0,
+  };
+
+  switch (cfg.burstType) {
+    case "fireworks": {
+      for (let i = 0; i < 3; i++) {
+        window.confetti({
+          ...base,
+          particleCount: Math.round(base.particleCount / 3),
+          startVelocity: 50,
+          ticks: 250,
+          origin: {
+            x: 0.2 + 0.3 * i,
+            y: Math.random() * 0.4 + 0.1,
+          },
+        });
+      }
+      break;
+    }
+
+    case "snow":
+      window.confetti({
+        ...base,
+        particleCount: base.particleCount ?? 250,
+        spread: 160,
+        gravity: 0.3,
+        startVelocity: 10,
+        ticks: 400,
+      });
+      break;
+
+    case "pride":
+      window.confetti({
+        ...base,
+        spread: 120,
+        startVelocity: 35,
+        ticks: 300,
+        gravity: 0.7,
+      });
+      break;
+
+    default:
+      window.confetti({
+        ...base,
+        startVelocity: 45,
+      });
+  }
+};
+
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 

@@ -1,10 +1,16 @@
-// app/src/components/EditorView.jsx
 import React from "react";
-import { ArrowLeft, Globe, Ticket, Sparkles, XCircle, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  Globe,
+  Ticket,
+  Sparkles,
+  XCircle,
+  Plus,
+} from "lucide-react";
 import { SHAPE_OPTIONS, BURST_TYPES } from "../constants/confettiConstants";
 
 export default function EditorView({
-   activeConfig,
+  activeConfig,
   setActiveConfig,
   fire,
   saveDraft,
@@ -17,22 +23,80 @@ export default function EditorView({
   if (!activeConfig) return null;
 
   const isVoucher = activeConfig.type === "voucher";
+
+  const buildFirePayload = (config) => ({
+    particleCount: config.particleCount ?? 200,
+    spread: config.spread ?? 90,
+    gravity: config.gravity ?? 1.0,
+    colors: config.colors ?? ["#FFB396"],
+    shapes: config.shapes?.length ? config.shapes : ["circle"],
+
+    // REQUIRED defaults (your old version always included these)
+    origin: { x: 0.5, y: 0.6 },
+    startVelocity: 45,
+    decay: 0.9,
+    drift: 0,
+
+    burstType: config.burstType ?? "cannon",
+  });
+
+  const ensureConfettiLoaded = () => {
+    return new Promise((resolve) => {
+      if (window.confetti) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
+  };
+
+  // Determine active state based on correct type
   const isActive =
     activeConfig.type === "confetti"
-      ? savedConfetti.find((i) => i.id === activeConfig.id)?.isActive === true
-      : savedVouchers.find((i) => i.id === activeConfig.id)?.isActive === true;
+      ? savedConfetti.some((i) => i.id === activeConfig.id && i.isActive)
+      : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
-  const handleTest = () => {
-    // fire() was passed from ConfettiApp → you can actually
-    // wire it to canvas-confetti here using activeConfig
-    if (typeof fire === "function") {
-      fire(activeConfig);
-    }
+  const handleTest = async () => {
+  await ensureConfettiLoaded();
+
+  // Extract values with safe fallbacks
+  const {
+    particleCount = 200,
+    spread = 90,
+    gravity = 1.0,
+    shapes = ["circle"],
+    colors = ["#FFB396"],
+    burstType = "cannon",
+  } = activeConfig;
+
+  // OLD working payload
+  const payload = {
+    particleCount,
+    spread,
+    gravity,
+    burstType,
+    colors,
+    shapes: shapes.length ? shapes : ["circle"],
+
+    // REQUIRED defaults (old code used these always)
+    origin: { x: 0.5, y: 0.6 },
+    startVelocity: 45,
+    decay: 0.9,
+    drift: 0,
   };
+
+  fire(payload);
+};
+
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">
-      {/* Settings panel */}
+      {/* SETTINGS SIDEBAR */}
       <aside className="w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden z-10 shadow-sm">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
           <button
@@ -44,12 +108,15 @@ export default function EditorView({
           <h2 className="font-bold text-sm text-slate-900">Configuration</h2>
         </div>
 
+        {/* MAIN SETTINGS */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
           {/* General */}
           <section className="space-y-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               General
             </h3>
+
+            {/* Title */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600">Name</label>
               <input
@@ -62,6 +129,7 @@ export default function EditorView({
               />
             </div>
 
+            {/* Voucher Code */}
             {isVoucher && (
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-600">
@@ -79,7 +147,7 @@ export default function EditorView({
             )}
           </section>
 
-          {/* Burst type */}
+          {/* Burst Types */}
           <section className="space-y-3">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Burst Type
@@ -103,7 +171,7 @@ export default function EditorView({
             </div>
           </section>
 
-          {/* Shapes */}
+          {/* Shapes (ONLY Confetti) */}
           {!isVoucher && (
             <section className="space-y-3">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -137,7 +205,7 @@ export default function EditorView({
             </section>
           )}
 
-          {/* Physics */}
+          {/* PHYSICS */}
           <section className="space-y-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Physics
@@ -194,7 +262,7 @@ export default function EditorView({
               />
             </div>
 
-            {/* Particle count */}
+            {/* Particle Count */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-600">
@@ -242,7 +310,7 @@ export default function EditorView({
                   <button
                     onClick={() => {
                       const next = activeConfig.colors.filter(
-                        (_, idx) => idx !== i
+                        (_, idx) => idx !== i,
                       );
                       setActiveConfig({
                         ...activeConfig,
@@ -255,6 +323,8 @@ export default function EditorView({
                   </button>
                 </div>
               ))}
+
+              {/* Add Color */}
               <button
                 onClick={() =>
                   setActiveConfig({
@@ -269,7 +339,7 @@ export default function EditorView({
             </div>
           </section>
 
-          {/* Test button */}
+          {/* Test */}
           <button
             onClick={handleTest}
             className="w-full py-2.5 rounded-lg font-bold text-sm bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2"
@@ -279,6 +349,7 @@ export default function EditorView({
           </button>
         </div>
 
+        {/* Save/Cancel */}
         <div className="px-6 py-4 border-t border-slate-100 space-y-3 bg-white">
           <button
             onClick={saveDraft}
@@ -286,6 +357,7 @@ export default function EditorView({
           >
             Save Draft
           </button>
+
           <button
             onClick={() => setView("dashboard")}
             className="w-full py-2.5 rounded-lg font-bold text-sm border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
@@ -295,26 +367,27 @@ export default function EditorView({
         </div>
       </aside>
 
-      {/* Preview */}
+      {/* LIVE PREVIEW */}
       <main className="flex-1 flex flex-col overflow-hidden bg-[#F1F5F9]">
         <header className="flex items-center justify-between px-8 py-4 border-b border-slate-200 bg-white">
           <h3 className="font-bold text-sm text-slate-900">Live Preview</h3>
-          <button
-  onClick={async () => {
-    if (isActive) {
-      await onDeactivate(activeConfig);
-    } else {
-      await onActivate(activeConfig);
-    }
-    setView("dashboard");
-  }}
-  className={`px-4 py-2 rounded-lg font-bold text-xs transition-colors flex items-center gap-2 ${
-    isActive
-      ? "bg-red-50 text-red-600 hover:bg-red-100"
-      : "bg-slate-900 text-white hover:bg-slate-800"
-  }`}
->
 
+          {/* ACTIVATE / DEACTIVATE BUTTON */}
+          <button
+            onClick={async () => {
+              if (isActive) {
+                await onDeactivate(activeConfig);
+              } else {
+                await onActivate(activeConfig);
+              }
+              setView("dashboard");
+            }}
+            className={`px-4 py-2 rounded-lg font-bold text-xs transition-colors flex items-center gap-2 ${
+              isActive
+                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                : "bg-slate-900 text-white hover:bg-slate-800"
+            }`}
+          >
             {isActive ? (
               <>
                 <XCircle size={14} /> Deactivate
@@ -327,11 +400,12 @@ export default function EditorView({
           </button>
         </header>
 
-        {/* Preview card – use same structure you had before */}
+        {/* PREVIEW CONTENT */}
         <div className="flex-1 flex items-center justify-center p-12 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
 
           <div className="relative z-10 flex flex-col items-center gap-8 text-center max-w-md w-full">
+            {/* Voucher UI */}
             {isVoucher && (
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-10 py-12 w-full">
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 mx-auto mb-4">
@@ -346,6 +420,7 @@ export default function EditorView({
               </div>
             )}
 
+            {/* Confetti UI */}
             {!isVoucher && (
               <div className="relative bg-white rounded-2xl border border-slate-200 h-64 w-full flex items-center justify-center overflow-hidden shadow-lg">
                 <div className="absolute inset-0 opacity-40">
@@ -364,6 +439,7 @@ export default function EditorView({
                     />
                   ))}
                 </div>
+
                 <p className="text-slate-400 font-medium text-sm relative z-10 flex flex-col items-center gap-2">
                   <Sparkles className="w-8 h-8 opacity-50" />
                   Preview Area
@@ -371,6 +447,7 @@ export default function EditorView({
               </div>
             )}
 
+            {/* Test button */}
             <div>
               <button
                 onClick={handleTest}

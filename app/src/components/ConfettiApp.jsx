@@ -59,65 +59,66 @@ export default function ConfettiApp() {
   }
 
   const fire = (cfg) => {
-    if (!window.confetti) return;
+  if (!window.confetti) return;
 
-    const base = {
-      particleCount: cfg.particleCount || 150,
-      spread: cfg.spread || 70,
-      gravity: cfg.gravity ?? 1,
-      origin: cfg.origin || { x: 0.5, y: 0.6 },
-      colors: cfg.colors,
-      shapes: cfg.shapes,
-      startVelocity: cfg.startVelocity || 45,
-      decay: cfg.decay || 0.9,
-      drift: cfg.drift || 0,
-    };
-
-    switch (cfg.burstType) {
-      case "fireworks": {
-        for (let i = 0; i < 3; i++) {
-          window.confetti({
-            ...base,
-            particleCount: Math.round(base.particleCount / 3),
-            startVelocity: 50,
-            ticks: 250,
-            origin: {
-              x: 0.2 + 0.3 * i,
-              y: Math.random() * 0.4 + 0.1,
-            },
-          });
-        }
-        break;
-      }
-
-      case "snow":
-        window.confetti({
-          ...base,
-          particleCount: base.particleCount ?? 250,
-          spread: 160,
-          gravity: 0.3,
-          startVelocity: 10,
-          ticks: 400,
-        });
-        break;
-
-      case "pride":
-        window.confetti({
-          ...base,
-          spread: 120,
-          startVelocity: 35,
-          ticks: 300,
-          gravity: 0.7,
-        });
-        break;
-
-      default:
-        window.confetti({
-          ...base,
-          startVelocity: 45,
-        });
-    }
+  const base = {
+    particleCount: cfg.particleCount || 150,
+    spread: cfg.spread || 70,
+    gravity: cfg.gravity ?? 1,
+    origin: cfg.origin || { x: 0.5, y: 0.6 },
+    colors: cfg.colors,
+    shapes: cfg.shapes,
+    startVelocity: cfg.startVelocity || 45,
+    decay: cfg.decay || 0.9,
+    drift: cfg.drift || 0,
   };
+
+  switch (cfg.burstType) {
+    case "fireworks": {
+      for (let i = 0; i < 3; i++) {
+        window.confetti({
+          ...base,
+          particleCount: Math.round(base.particleCount / 3),
+          startVelocity: 50,
+          ticks: 250,
+          origin: {
+            x: 0.2 + 0.3 * i,
+            y: Math.random() * 0.4 + 0.1,
+          },
+        });
+      }
+      break;
+    }
+
+    case "snow":
+      window.confetti({
+        ...base,
+        particleCount: base.particleCount ?? 250,
+        spread: 160,
+        gravity: 0.3,
+        startVelocity: 10,
+        ticks: 400,
+      });
+      break;
+
+    case "pride":
+      window.confetti({
+        ...base,
+        spread: 120,
+        startVelocity: 35,
+        ticks: 300,
+        gravity: 0.7,
+      });
+      break;
+
+    default:
+      window.confetti({
+        ...base,
+        startVelocity: 45,
+      });
+  }
+};
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -242,102 +243,88 @@ export default function ConfettiApp() {
   // 🟧 7) SAVE DRAFT (NO DUPLICATES)
   // -------------------------------------------------------------
   const saveDraft = () => {
-    if (!activeConfig) return null;
+  if (!activeConfig) return null;
 
-    const item = activeConfig;
-    const setter =
-      item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
+  const item = activeConfig;
+  const setter =
+    item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
-    setter((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
+  setter((prev) => {
+    const exists = prev.find((i) => i.id === item.id);
 
-      let updated;
+    let updated;
 
-      if (exists) {
-        updated = prev.map((i) => (i.id === item.id ? { ...i, ...item } : i));
-      } else {
-        updated = [
-          {
-            ...item,
-            isActive: false,
-            isPredefined: false,
-            createdAt: "Just now",
-          },
-          ...prev,
-        ];
-      }
+    if (exists) {
+      updated = prev.map((i) =>
+        i.id === item.id ? { ...i, ...item } : i
+      );
+    } else {
+      updated = [
+        {
+          ...item,
+          isActive: false,
+          isPredefined: false,
+          createdAt: "Just now",
+        },
+        ...prev,
+      ];
+    }
 
-      updated = dedupeByTitle(updated);
+    updated = dedupeByTitle(updated);
 
-      if (item.type === "confetti") {
-        localStorage.setItem("savedConfetti", JSON.stringify(updated));
-      } else {
-        localStorage.setItem("savedVouchers", JSON.stringify(updated));
-      }
+    if (item.type === "confetti") {
+      localStorage.setItem("savedConfetti", JSON.stringify(updated));
+    } else {
+      localStorage.setItem("savedVouchers", JSON.stringify(updated));
+    }
 
-      return updated;
-    });
+    return updated;
+  });
 
-    setView("dashboard");
-    return item;
-  };
+  setView("dashboard");
+  return item;
+};
+
 
   // -------------------------------------------------------------
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”
   // -------------------------------------------------------------
   const requestActivation = async (item) => {
     const triggerEvent = await showTriggerEventModal();
-    if (!triggerEvent) return; // cancelled
+    if (!triggerEvent) return; // canceled
 
     const trigger =
       typeof triggerEvent === "string"
         ? triggerEvent
         : triggerEvent.event || "page_load";
 
-    // 🔥 NEW RULE:
-    // If trigger = page_load → allow ONLY ONE across ALL types
-    if (trigger === "page_load") {
-      setSavedConfetti((prev) =>
-        prev.map((p) =>
-          p.isActive && p.trigger === "page_load"
-            ? { ...p, isActive: false }
-            : p,
-        ),
-      );
+    const isVoucher = item.type === "voucher";
 
+    // 1) Deactivate others with SAME TYPE & SAME TRIGGER
+    if (isVoucher) {
       setSavedVouchers((prev) =>
         prev.map((p) =>
-          p.isActive && p.trigger === "page_load"
-            ? { ...p, isActive: false }
-            : p,
+          p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
         ),
       );
     } else {
-      // normal rule (same TYPE + same TRIGGER)
-      if (item.type === "voucher") {
-        setSavedVouchers((prev) =>
-          prev.map((p) =>
-            p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
-          ),
-        );
-      } else {
-        setSavedConfetti((prev) =>
-          prev.map((p) =>
-            p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
-          ),
-        );
-      }
+      setSavedConfetti((prev) =>
+        prev.map((p) =>
+          p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
+        ),
+      );
     }
 
-    // Now activate THIS one
-    const setter =
-      item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
+    // 2) mark THIS ONE active
+    const setter = isVoucher ? setSavedVouchers : setSavedConfetti;
 
     setter((prev) => {
+      // 🟢 Prevent duplicates by matching title + type
       const existing = prev.find(
         (i) => i.title.trim().toLowerCase() === item.title.trim().toLowerCase(),
       );
 
+      // Update existing
       if (existing) {
         return prev.map((i) =>
           i.id === existing.id
@@ -352,6 +339,7 @@ export default function ConfettiApp() {
         );
       }
 
+      // Insert new
       return [
         {
           ...item,
@@ -364,6 +352,7 @@ export default function ConfettiApp() {
       ];
     });
 
+    // send to Shopify backend
     await activateConfetti(item, triggerEvent);
 
     setShowInstructions(true);

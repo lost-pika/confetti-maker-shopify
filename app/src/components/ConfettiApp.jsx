@@ -49,6 +49,26 @@ export default function ConfettiApp() {
     resolve: null,
   });
 
+  useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  let confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
+  let vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
+
+  // 🚨 Remove WRONG-TYPE items from voucher list
+  vouchers = vouchers.filter(v => v.type === "voucher");
+
+  // 🚨 Remove WRONG-TYPE items from confetti list
+  confetti = confetti.filter(c => c.type === "confetti");
+
+  localStorage.setItem("savedConfetti", JSON.stringify(confetti));
+  localStorage.setItem("savedVouchers", JSON.stringify(vouchers));
+
+  setSavedConfetti(confetti);
+  setSavedVouchers(vouchers);
+}, []);
+
+
   // -------------------------------------------------------------
   // 🟧 2) LOAD LOCAL STORAGE
   // -------------------------------------------------------------

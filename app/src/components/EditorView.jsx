@@ -24,15 +24,40 @@ export default function EditorView({
 
   const isVoucher = activeConfig.type === "voucher";
 
+  const ensureConfettiLoaded = () => {
+  return new Promise((resolve) => {
+    if (window.confetti) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+    script.onload = resolve;
+    document.body.appendChild(script);
+  });
+};
+
+
   // Determine active state based on correct type
   const isActive =
     activeConfig.type === "confetti"
       ? savedConfetti.some((i) => i.id === activeConfig.id && i.isActive)
       : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
-  const handleTest = () => {
-    if (typeof fire === "function") fire(activeConfig);
+  const handleTest = async () => {
+  await ensureConfettiLoaded();
+
+  // Fix for voucher (no shapes)
+  const fixedConfig = {
+    ...activeConfig,
+    shapes: activeConfig.shapes?.length ? activeConfig.shapes : ["circle"],
   };
+
+  fire(fixedConfig);
+};
+
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">

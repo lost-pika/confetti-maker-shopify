@@ -144,7 +144,7 @@ export default function DashboardView({
                   key={item.id}
                   item={item}
                   isActive={item.isActive}
-                  activeDraftTab={activeDraftTab}
+                  activeDraftTab={item.type}
                   onToggle={toggleActive}
                   onEdit={handleEditDraft}
                   onDelete={() => {
@@ -227,9 +227,9 @@ export default function DashboardView({
                   key={item.id}
                   item={item}
                   isActive={item.isActive}
+                  activeDraftTab={item.type} // ✔ FIX
                   onToggle={toggleActive}
                   onEdit={handleEditDraft}
-                  // onDelete={(id) => deleteDraft(id, item.type)}
                   onDelete={() => deleteDraft(item)}
                 />
               ))

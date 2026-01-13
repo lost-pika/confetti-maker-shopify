@@ -145,21 +145,42 @@
   }
 
   function init() {
-    const settings = window.__CONFETTI_SETTINGS__;
-    if (!settings?.config) return;
+  const settings = window.__CONFETTI_SETTINGS__;
+  if (!settings?.config) return;
 
-    const config = settings.config;
+  const config = settings.config;
 
-    // 🎉 Fire confetti based on trigger
-    if (settings.trigger === "page_load") fireConfetti(config);
-
-    if (settings.trigger === "purchase_complete") {
-      if (window.Shopify?.checkout) fireConfetti(config);
-    }
-
-    // 🎟 Render voucher UI
-    renderVoucher(config);
+  // 🎉 Fire confetti based on trigger
+  if (settings.trigger === "page_load") {
+    fireConfetti(config);
+    if (config.type === "voucher") renderVoucher(config);
   }
+
+  if (settings.trigger === "purchase_complete") {
+    if (window.Shopify?.checkout) {
+      fireConfetti(config);
+      if (config.type === "voucher") renderVoucher(config);
+    }
+  }
+
+  // 🗓️ New Year (only fire on Jan 1)
+  if (settings.trigger === "new_year") {
+    const today = new Date();
+    const mmdd =
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    if (mmdd === "01-01") {
+      fireConfetti(config);
+      if (config.type === "voucher") renderVoucher(config);
+    }
+  }
+
+  // ❌ REMOVE THIS — it breaks logic
+  // renderVoucher(config);
+}
+
 
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => waitForConfetti(init));

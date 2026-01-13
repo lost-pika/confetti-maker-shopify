@@ -287,84 +287,46 @@ export default function ConfettiApp() {
   // -------------------------------------------------------------
   const requestActivation = async (item) => {
     const triggerEvent = await showTriggerEventModal();
-    if (!triggerEvent) return; // cancelled
+    if (!triggerEvent) return;
 
-    const trigger =
-      typeof triggerEvent === "string"
-        ? triggerEvent
-        : triggerEvent.event || "page_load";
+    const trigger = triggerEvent.event || "page_load";
 
-    // 🔥 NEW RULE:
-    // If trigger = page_load → allow ONLY ONE across ALL types
-    if (trigger === "page_load") {
-      setSavedConfetti((prev) =>
-        prev.map((p) =>
-          p.isActive && p.trigger === "page_load"
-            ? { ...p, isActive: false }
-            : p,
-        ),
-      );
+    // 🔥 Step 1: Deactivate EVERYTHING else
+    setSavedConfetti((prev) => prev.map((p) => ({ ...p, isActive: false })));
 
-      setSavedVouchers((prev) =>
-        prev.map((p) =>
-          p.isActive && p.trigger === "page_load"
-            ? { ...p, isActive: false }
-            : p,
-        ),
-      );
-    } else {
-      // normal rule (same TYPE + same TRIGGER)
-      if (item.type === "voucher") {
-        setSavedVouchers((prev) =>
-          prev.map((p) =>
-            p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
-          ),
-        );
-      } else {
-        setSavedConfetti((prev) =>
-          prev.map((p) =>
-            p.isActive && p.trigger === trigger ? { ...p, isActive: false } : p,
-          ),
-        );
-      }
-    }
+    setSavedVouchers((prev) => prev.map((p) => ({ ...p, isActive: false })));
 
-    // Now activate THIS one
+    // 🔥 Step 2: Activate THIS ONE locally
     const setter =
       item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
 
+    let finalConfig = null;
+
     setter((prev) => {
-      const existing = prev.find(
-        (i) => i.title.trim().toLowerCase() === item.title.trim().toLowerCase(),
-      );
+      const existing = prev.find((i) => i.id === item.id);
 
       if (existing) {
-        return prev.map((i) =>
-          i.id === existing.id
-            ? {
-                ...existing,
-                ...item,
-                isActive: true,
-                isPredefined: false,
-                trigger,
-              }
-            : i,
-        );
-      }
-
-      return [
-        {
+        finalConfig = {
+          ...existing,
           ...item,
           isActive: true,
-          isPredefined: false,
-          createdAt: "Just now",
           trigger,
-        },
-        ...prev,
-      ];
+        };
+        return prev.map((i) => (i.id === item.id ? finalConfig : i));
+      }
+
+      finalConfig = {
+        ...item,
+        isActive: true,
+        trigger,
+        createdAt: "Just now",
+      };
+
+      return [finalConfig, ...prev];
     });
 
-    await activateConfetti(item, triggerEvent);
+    // 🔥 Step 3: Save the FINAL VERSION to Shopify metafield
+    await activateConfetti(finalConfig, { event: trigger });
 
     setShowInstructions(true);
   };

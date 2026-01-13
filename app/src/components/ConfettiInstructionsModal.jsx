@@ -16,7 +16,7 @@ export default function ConfettiInstructionsModal({ open, onClose }) {
         </h2>
 
         <ol className="list-decimal list-inside text-gray-700 text-sm space-y-2">
-          <li>Click <b>Open Theme Editor</b> below.</li>
+          <li>Click <b>Open Theme Editor</b>.</li>
           <li>Click <b>Edit theme</b>.</li>
           <li>Open <b>App embeds</b> from the sidebar.</li>
           <li>Enable <b>Confetti Maker – App Embed</b>.</li>

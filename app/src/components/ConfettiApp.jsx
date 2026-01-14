@@ -296,37 +296,49 @@ useEffect(() => {
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”
   // -------------------------------------------------------------
   const requestActivation = async (item) => {
+  // Ask user for trigger
   const triggerEvent = await showTriggerEventModal();
   if (!triggerEvent) return;
 
-  await activateConfetti(item, triggerEvent);
+  const trigger = triggerEvent.event || "page_load";
 
-  // Show instructions only once
-  if (!hasSeenInstructions) {
-    setShowInstructions(true);
-    setHasSeenInstructions(true);
-    localStorage.setItem("hasSeenInstructions", "true");
-  }
+  // 🟩 1) Deactivate ALL existing confetti + vouchers (only one active)
+  setSavedConfetti((prev) => prev.map((p) => ({ ...p, isActive: false })));
+  setSavedVouchers((prev) => prev.map((p) => ({ ...p, isActive: false })));
 
-  const setter =
-    item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
-
-  setter((prev) => {
-    const exists = prev.find((i) => i.id === item.id);
-
+  // 🟩 2) Activate THIS one
+  const apply = (prev) => {
+    const exists = prev.find((x) => x.id === item.id);
     if (exists) {
-      return prev.map((i) =>
-        i.id === item.id ? { ...i, isActive: true } : i
+      return prev.map((x) =>
+        x.id === item.id
+          ? { ...x, ...item, isActive: true, trigger }
+          : x
       );
     }
-
     return [
-      { ...item, isActive: true, isPredefined: false, createdAt: "Just now" },
+      { ...item, isActive: true, trigger, createdAt: "Just now" },
       ...prev,
     ];
-  });
-};
+  };
 
+  if (item.type === "voucher") {
+    setSavedVouchers(apply);
+  } else {
+    setSavedConfetti(apply);
+  }
+
+  // 🟩 3) Push active config to backend metafield
+  await activateConfetti(item, triggerEvent);
+
+  // 🟢 Show modal ONLY once
+  const hasSeen = localStorage.getItem("cm_instructions_shown");
+
+  if (!hasSeen) {
+    localStorage.setItem("cm_instructions_shown", "yes");
+    setShowInstructions(true);   // show ONLY first time
+  }
+};
 
   // -------------------------------------------------------------
   // 🟧 9) DEACTIVATE LOGIC (DO NOT DELETE FROM SAVED)

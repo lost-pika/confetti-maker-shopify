@@ -282,55 +282,51 @@ export default function ConfettiApp() {
     return item;
   };
 
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(false);
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const seen = localStorage.getItem("hasSeenInstructions");
+    setHasSeenInstructions(seen === "true");
+  }
+}, []);
+
+
   // -------------------------------------------------------------
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”
   // -------------------------------------------------------------
   const requestActivation = async (item) => {
-    // Ask user for trigger
-    const triggerEvent = await showTriggerEventModal();
-    if (!triggerEvent) return;
+  const triggerEvent = await showTriggerEventModal();
+  if (!triggerEvent) return;
 
-    const trigger = triggerEvent.event || "page_load";
+  await activateConfetti(item, triggerEvent);
 
-    // 🟩 1) Deactivate EVERY existing confetti + voucher
-    setSavedConfetti((prev) => prev.map((p) => ({ ...p, isActive: false })));
-
-    setSavedVouchers((prev) => prev.map((p) => ({ ...p, isActive: false })));
-
-    // 🟩 2) Activate THIS one only
-    const apply = (prev) => {
-      const exists = prev.find((x) => x.id === item.id);
-
-      if (exists) {
-        return prev.map((x) =>
-          x.id === item.id ? { ...x, ...item, isActive: true, trigger } : x,
-        );
-      }
-
-      return [
-        { ...item, isActive: true, trigger, createdAt: "Just now" },
-        ...prev,
-      ];
-    };
-
-    if (item.type === "voucher") {
-      setSavedVouchers(apply);
-    } else {
-      setSavedConfetti(apply);
-    }
-
-    // 🟩 3) Push active config to backend metafield
-    // send to Shopify backend
-    await activateConfetti(item, triggerEvent);
-
-    // 🟢 Show instructions ONLY the first time user activates something
-    if (!localStorage.getItem("cm_instructions_shown")) {
-      localStorage.setItem("cm_instructions_shown", "yes");
-      setShowInstructions(true);
-    }
-
+  // Show instructions only once
+  if (!hasSeenInstructions) {
     setShowInstructions(true);
-  };
+    setHasSeenInstructions(true);
+    localStorage.setItem("hasSeenInstructions", "true");
+  }
+
+  const setter =
+    item.type === "voucher" ? setSavedVouchers : setSavedConfetti;
+
+  setter((prev) => {
+    const exists = prev.find((i) => i.id === item.id);
+
+    if (exists) {
+      return prev.map((i) =>
+        i.id === item.id ? { ...i, isActive: true } : i
+      );
+    }
+
+    return [
+      { ...item, isActive: true, isPredefined: false, createdAt: "Just now" },
+      ...prev,
+    ];
+  });
+};
+
 
   // -------------------------------------------------------------
   // 🟧 9) DEACTIVATE LOGIC (DO NOT DELETE FROM SAVED)

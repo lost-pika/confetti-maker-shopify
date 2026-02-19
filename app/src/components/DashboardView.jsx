@@ -49,7 +49,7 @@ export default function DashboardView({
         {/* HEADER */}
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-[#155E63] to-[#1F9D8B] flex items-center justify-center shadow-md">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -66,7 +66,7 @@ export default function DashboardView({
           <div className="flex items-center gap-3">
             <button
               onClick={onShowInstructions}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-pink-500 text-white text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#155E63] to-[#1F9D8B] text-white text-sm hover:brightness-110 transition-all shadow-lg shadow-black/20 flex items-center gap-2"
             >
               Instructions
             </button>
@@ -79,7 +79,7 @@ export default function DashboardView({
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-pink-500 text-white text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#155E63] to-[#1F9D8B] text-white text-sm hover:brightness-110 transition-all shadow-lg shadow-black/20 flex items-center gap-2"
             >
               Open Theme Editor
             </a>
@@ -100,7 +100,7 @@ export default function DashboardView({
             </div>
             <button
               onClick={() => handleCreateNew("confetti")}
-              className="px-8 py-3 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-orange-400 to-pink-500 hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#155E63] to-[#1F9D8B] text-white text-sm hover:brightness-110 transition-all shadow-lg shadow-black/20 flex items-center gap-2"
             >
               <Plus size={18} />
               Create Confetti
@@ -177,7 +177,7 @@ export default function DashboardView({
                     }}
                     className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all capitalize ${
                       activeDraftTab === tab
-                        ? "bg-orange-50 text-orange-600 ring-1 ring-orange-200"
+                        ? "bg-green-50 text-[#155E63] ring-1 ring-orange-200"
                         : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                     }`}
                   >
@@ -219,7 +219,7 @@ export default function DashboardView({
 
               <button
                 onClick={handleCreateNew}
-                className="w-9 h-9 rounded-lg bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-colors shadow-sm"
+                className="w-9 h-9 rounded-lg bg-[#155E63] hover:bg-[#1F9D8B] text-white flex items-center justify-center transition-colors shadow-sm"
               >
                 <Plus className="w-5 h-5" />
               </button>

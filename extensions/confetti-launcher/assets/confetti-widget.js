@@ -145,42 +145,100 @@
   }
 
   function init() {
-  const settings = window.__CONFETTI_SETTINGS__;
-  if (!settings?.config) return;
+    const settings = window.__CONFETTI_SETTINGS__;
 
-  const config = settings.config;
+    // support both old and new format safely
+    const configs = settings?.configs
+      ? settings.configs
+      : settings?.config
+        ? [
+            {
+              config: settings.config,
+              trigger: settings.trigger,
+              date: settings.date,
+            },
+          ]
+        : [];
 
-  // 🎉 Fire confetti based on trigger
-  if (settings.trigger === "page_load") {
-    fireConfetti(config);
-    if (config.type === "voucher") renderVoucher(config);
+    if (!configs.length) return;
+
+    configs.forEach(({ config, trigger, date }) => {
+      const fire = () => {
+        fireConfetti(config);
+        if (config.type === "voucher") renderVoucher(config);
+      };
+
+      // PAGE LOAD
+      if (trigger === "page_load") {
+        fire();
+      }
+
+      // CLICK
+      if (trigger === "click") {
+        document.addEventListener("click", fire, { once: true });
+      }
+
+      // HOVER
+      if (trigger === "hover") {
+        document.addEventListener("mouseover", fire, { once: true });
+      }
+
+      // SCROLL
+      if (trigger === "scroll") {
+        const onScroll = () => {
+          const scrollPercent =
+            (window.scrollY /
+              (document.body.scrollHeight - window.innerHeight)) *
+            100;
+
+          if (scrollPercent > 50) {
+            fire();
+            window.removeEventListener("scroll", onScroll);
+          }
+        };
+
+        window.addEventListener("scroll", onScroll);
+      }
+
+      // CUSTOM DATE
+      if (trigger === "custom_date" && date) {
+        const today = new Date();
+        const mmdd =
+          String(today.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(today.getDate()).padStart(2, "0");
+
+        if (mmdd === date) {
+          fire();
+        }
+      }
+
+      // FORM SUBMIT
+      if (trigger === "form_submit") {
+        document.addEventListener("submit", fire, true);
+      }
+
+      // NEW YEAR
+      if (trigger === "new_year") {
+        const today = new Date();
+        const mmdd =
+          String(today.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(today.getDate()).padStart(2, "0");
+
+        if (mmdd === "01-01") {
+          fire();
+        }
+      }
+
+      // PURCHASE COMPLETE
+      if (trigger === "purchase_complete") {
+        if (window.Shopify?.checkout) {
+          fire();
+        }
+      }
+    });
   }
-
-  if (settings.trigger === "purchase_complete") {
-    if (window.Shopify?.checkout) {
-      fireConfetti(config);
-      if (config.type === "voucher") renderVoucher(config);
-    }
-  }
-
-  // 🗓️ New Year (only fire on Jan 1)
-  if (settings.trigger === "new_year") {
-    const today = new Date();
-    const mmdd =
-      String(today.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(today.getDate()).padStart(2, "0");
-
-    if (mmdd === "01-01") {
-      fireConfetti(config);
-      if (config.type === "voucher") renderVoucher(config);
-    }
-  }
-
-  // ❌ REMOVE THIS — it breaks logic
-  // renderVoucher(config);
-}
-
 
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => waitForConfetti(init));

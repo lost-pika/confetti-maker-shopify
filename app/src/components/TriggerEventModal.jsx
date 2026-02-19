@@ -5,23 +5,28 @@ const TRIGGER_EVENTS = [
   {
     id: "page_load",
     label: "On page load",
-    description: "Fire confetti when the page loads.",
+    description: "Fire confetti when page loads.",
   },
-  // {
-  //   id: "purchase_complete",
-  //   label: "On purchase complete",
-  //   description: "Celebrate when an order is completed.",
-  // },
+  {
+    id: "custom_date",
+    label: "On custom date",
+    description: "Fire confetti on selected date.",
+  },
+  {
+    id: "click",
+    label: "On click",
+    description: "Fire confetti when user clicks anywhere.",
+  },
+  {
+    id: "form_submit",
+    label: "On form submit",
+    description: "Fire confetti when form is submitted.",
+  },
   {
     id: "new_year",
     label: "On New Year",
-    description: "Show confetti on January 1st.",
+    description: "Fire confetti on Jan 1.",
   },
-  // {
-  //   id: "custom_date",
-  //   label: "On a custom date",
-  //   description: "Pick a specific month and day.",
-  // },
 ];
 
 export function TriggerEventModal({ onSelect, onClose }) {
@@ -60,9 +65,7 @@ export function TriggerEventModal({ onSelect, onClose }) {
                 <div className="font-bold text-sm text-slate-900">
                   {ev.label}
                 </div>
-                <div className="text-xs text-slate-500">
-                  {ev.description}
-                </div>
+                <div className="text-xs text-slate-500">{ev.description}</div>
               </div>
             </label>
           ))}
@@ -78,7 +81,7 @@ export function TriggerEventModal({ onSelect, onClose }) {
               placeholder="01-15"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
             />
           </div>
         )}
@@ -92,7 +95,7 @@ export function TriggerEventModal({ onSelect, onClose }) {
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 py-2 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 transition-colors"
+            className="flex-1 py-2 rounded-lg bg-green-500 text-white font-bold hover:bg-green-600 transition-colors"
           >
             Confirm
           </button>

@@ -125,7 +125,7 @@ export default function EditorView({
                 onChange={(e) =>
                   setActiveConfig({ ...activeConfig, title: e.target.value })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
               />
             </div>
 
@@ -141,7 +141,7 @@ export default function EditorView({
                   onChange={(e) =>
                     setActiveConfig({ ...activeConfig, code: e.target.value })
                   }
-                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm font-mono font-bold tracking-[0.1em] uppercase text-orange-600 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
+                  className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm font-mono font-bold tracking-[0.1em] uppercase text-green-600 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all"
                 />
               </div>
             )}
@@ -161,7 +161,7 @@ export default function EditorView({
                   }
                   className={`p-2.5 rounded-lg text-xs font-bold transition-all border ${
                     activeConfig.burstType === burst.value
-                      ? "bg-orange-50 border-orange-500 text-orange-700"
+                      ? "bg-green-50 border-green-500 text-green-700"
                       : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
@@ -217,7 +217,7 @@ export default function EditorView({
                 <label className="text-xs font-bold text-slate-600">
                   Gravity
                 </label>
-                <span className="text-xs font-bold text-orange-500">
+                <span className="text-xs font-bold text-green-500">
                   {activeConfig.gravity.toFixed(1)}
                 </span>
               </div>
@@ -233,7 +233,7 @@ export default function EditorView({
                     gravity: parseFloat(e.target.value),
                   })
                 }
-                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+                className="w-full accent-green-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
               />
             </div>
 
@@ -243,7 +243,7 @@ export default function EditorView({
                 <label className="text-xs font-bold text-slate-600">
                   Spread
                 </label>
-                <span className="text-xs font-bold text-orange-500">
+                <span className="text-xs font-bold text-green-500">
                   {activeConfig.spread}°
                 </span>
               </div>
@@ -258,7 +258,7 @@ export default function EditorView({
                     spread: parseInt(e.target.value, 10),
                   })
                 }
-                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+                className="w-full accent-green-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
               />
             </div>
 
@@ -268,7 +268,7 @@ export default function EditorView({
                 <label className="text-xs font-bold text-slate-600">
                   Particle Count
                 </label>
-                <span className="text-xs font-bold text-orange-500">
+                <span className="text-xs font-bold text-green-500">
                   {activeConfig.particleCount}
                 </span>
               </div>
@@ -284,7 +284,7 @@ export default function EditorView({
                     particleCount: parseInt(e.target.value, 10),
                   })
                 }
-                className="w-full accent-orange-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
+                className="w-full accent-green-500 cursor-pointer bg-slate-200 rounded-lg h-1.5 appearance-none"
               />
             </div>
           </section>
@@ -332,7 +332,7 @@ export default function EditorView({
                     colors: [...(activeConfig.colors || []), "#FFB396"],
                   })
                 }
-                className="aspect-square border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-orange-500 hover:border-orange-500 hover:bg-orange-50 transition-all flex items-center justify-center"
+                className="aspect-square border border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-green-500 hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-center"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -342,7 +342,7 @@ export default function EditorView({
           {/* Test */}
           <button
             onClick={handleTest}
-            className="w-full py-2.5 rounded-lg font-bold text-sm bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-lg font-bold text-sm bg-gradient-to-r from-[#155E63] to-[#1F9D8B] text-white shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2"
           >
             <Sparkles className="w-4 h-4" />
             Test Confetti
@@ -408,7 +408,7 @@ export default function EditorView({
             {/* Voucher UI */}
             {isVoucher && (
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xl px-10 py-12 w-full">
-                <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500 mx-auto mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center text-green-500 mx-auto mb-4">
                   <Ticket className="w-8 h-8" />
                 </div>
                 <h4 className="text-xl font-bold text-slate-900 mb-4">
@@ -451,7 +451,7 @@ export default function EditorView({
             <div>
               <button
                 onClick={handleTest}
-                className="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-orange-400 to-pink-500 hover:bg-slate-800 transition-all shadow-lg active:scale-95 flex items-center gap-2"
+                className="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#155E63] to-[#1F9D8B] hover:bg-slate-800 transition-all shadow-lg active:scale-95 flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 {isVoucher ? "Reveal Voucher" : "Launch Confetti"}

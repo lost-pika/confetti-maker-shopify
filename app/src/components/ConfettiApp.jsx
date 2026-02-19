@@ -48,15 +48,15 @@ export default function ConfettiApp() {
     open: false,
     resolve: null,
   });
+function dedupeById(list) {
+  const seen = new Set();
+  return list.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
 
-  function dedupeByTitle(list) {
-    const seen = new Set();
-    return list.filter((item) => {
-      if (seen.has(item.title)) return false;
-      seen.add(item.title);
-      return true;
-    });
-  }
 
   const fire = (cfg) => {
     if (!window.confetti) return;
@@ -130,24 +130,12 @@ export default function ConfettiApp() {
     vouchers = vouchers.filter((v) => v.type === "voucher");
 
     // 🔥 REMOVE DUPLICATES BY TITLE
-    confetti = dedupeByTitle(confetti);
-    vouchers = dedupeByTitle(vouchers);
+    confetti = dedupeById(confetti);
+vouchers = dedupeById(vouchers);
+
 
     localStorage.setItem("savedConfetti", JSON.stringify(confetti));
     localStorage.setItem("savedVouchers", JSON.stringify(vouchers));
-
-    setSavedConfetti(confetti);
-    setSavedVouchers(vouchers);
-  }, []);
-
-  // -------------------------------------------------------------
-  // 🟧 2) LOAD LOCAL STORAGE
-  // -------------------------------------------------------------
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const confetti = JSON.parse(localStorage.getItem("savedConfetti") || "[]");
-    const vouchers = JSON.parse(localStorage.getItem("savedVouchers") || "[]");
 
     setSavedConfetti(confetti);
     setSavedVouchers(vouchers);
@@ -267,7 +255,8 @@ export default function ConfettiApp() {
         ];
       }
 
-      updated = dedupeByTitle(updated);
+      updated = dedupeById(updated);
+
 
       if (item.type === "confetti") {
         localStorage.setItem("savedConfetti", JSON.stringify(updated));
@@ -284,61 +273,108 @@ export default function ConfettiApp() {
 
   const [hasSeenInstructions, setHasSeenInstructions] = useState(false);
 
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const seen = localStorage.getItem("hasSeenInstructions");
-    setHasSeenInstructions(seen === "true");
-  }
-}, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const seen = localStorage.getItem("hasSeenInstructions");
+      setHasSeenInstructions(seen === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+  if (!shopDomain) return;
+  if (!savedConfetti.length && !savedVouchers.length) return;
+
+  const loadActive = async () => {
+    const res = await fetch(`/api/confetti?shop=${shopDomain}`);
+    const json = await res.json();
+
+    if (!json.success) return;
+
+    const activeIds = json.data.map((c) => c.id);
+
+    setSavedConfetti((prev) =>
+      prev.map((item) => ({
+        ...item,
+        isActive: activeIds.includes(item.id),
+      }))
+    );
+
+    setSavedVouchers((prev) =>
+      prev.map((item) => ({
+        ...item,
+        isActive: activeIds.includes(item.id),
+      }))
+    );
+  };
+
+  loadActive();
+}, [shopDomain]);
 
 
   // -------------------------------------------------------------
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”
   // -------------------------------------------------------------
   const requestActivation = async (item) => {
-  // Ask user for trigger
-  const triggerEvent = await showTriggerEventModal();
-  if (!triggerEvent) return;
+    const triggerEvent = await showTriggerEventModal();
+    if (!triggerEvent) return;
 
-  const trigger = triggerEvent.event || "page_load";
+    const trigger = triggerEvent.event || "page_load";
+    const date = triggerEvent.date || null;
 
-  // 🟩 1) Deactivate ALL existing confetti + vouchers (only one active)
-  setSavedConfetti((prev) => prev.map((p) => ({ ...p, isActive: false })));
-  setSavedVouchers((prev) => prev.map((p) => ({ ...p, isActive: false })));
+    // Only deactivate items with SAME trigger
+    const deactivateSameTrigger = (list) =>
+      list.map((p) => (p.trigger === trigger ? { ...p, isActive: false } : p));
 
-  // 🟩 2) Activate THIS one
-  const apply = (prev) => {
-    const exists = prev.find((x) => x.id === item.id);
-    if (exists) {
-      return prev.map((x) =>
-        x.id === item.id
-          ? { ...x, ...item, isActive: true, trigger }
-          : x
-      );
+    setSavedConfetti((prev) => deactivateSameTrigger(prev));
+    setSavedVouchers((prev) => deactivateSameTrigger(prev));
+
+    const apply = (prev) => {
+      const exists = prev.find((x) => x.id === item.id);
+
+      if (exists) {
+        return prev.map((x) =>
+          x.id === item.id
+            ? {
+                ...x,
+                ...item,
+                isActive: true,
+                trigger,
+                date,
+              }
+            : x,
+        );
+      }
+
+      return [
+        {
+          ...item,
+          isActive: true,
+          trigger,
+          date,
+          createdAt: "Just now",
+        },
+        ...prev,
+      ];
+    };
+
+    if (item.type === "voucher") {
+      setSavedVouchers(apply);
+    } else {
+      setSavedConfetti(apply);
     }
-    return [
-      { ...item, isActive: true, trigger, createdAt: "Just now" },
-      ...prev,
-    ];
+
+    await activateConfetti(item, {
+      event: trigger,
+      date,
+    });
+
+    const hasSeen = localStorage.getItem("cm_instructions_shown");
+
+    if (!hasSeen) {
+      localStorage.setItem("cm_instructions_shown", "yes");
+      setShowInstructions(true);
+    }
   };
-
-  if (item.type === "voucher") {
-    setSavedVouchers(apply);
-  } else {
-    setSavedConfetti(apply);
-  }
-
-  // 🟩 3) Push active config to backend metafield
-  await activateConfetti(item, triggerEvent);
-
-  // 🟢 Show modal ONLY once
-  const hasSeen = localStorage.getItem("cm_instructions_shown");
-
-  if (!hasSeen) {
-    localStorage.setItem("cm_instructions_shown", "yes");
-    setShowInstructions(true);   // show ONLY first time
-  }
-};
 
   // -------------------------------------------------------------
   // 🟧 9) DEACTIVATE LOGIC (DO NOT DELETE FROM SAVED)

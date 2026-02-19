@@ -48,15 +48,14 @@ export default function ConfettiApp() {
     open: false,
     resolve: null,
   });
-function dedupeById(list) {
-  const seen = new Set();
-  return list.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
-}
-
+  function dedupeById(list) {
+    const seen = new Set();
+    return list.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }
 
   const fire = (cfg) => {
     if (!window.confetti) return;
@@ -131,14 +130,38 @@ function dedupeById(list) {
 
     // 🔥 REMOVE DUPLICATES BY TITLE
     confetti = dedupeById(confetti);
-vouchers = dedupeById(vouchers);
-
+    vouchers = dedupeById(vouchers);
 
     localStorage.setItem("savedConfetti", JSON.stringify(confetti));
     localStorage.setItem("savedVouchers", JSON.stringify(vouchers));
 
-    setSavedConfetti(confetti);
-    setSavedVouchers(vouchers);
+    setSavedConfetti((prev) => {
+      const map = new Map(prev.map((i) => [i.id, i]));
+
+      confetti.forEach((item) => {
+        map.set(item.id, {
+          ...map.get(item.id),
+          ...item,
+          isActive: item.isActive,
+        });
+      });
+
+      return Array.from(map.values());
+    });
+
+    setSavedVouchers((prev) => {
+      const map = new Map(prev.map((i) => [i.id, i]));
+
+      vouchers.forEach((item) => {
+        map.set(item.id, {
+          ...map.get(item.id),
+          ...item,
+          isActive: item.isActive,
+        });
+      });
+
+      return Array.from(map.values());
+    });
   }, []);
 
   // save back to localStorage
@@ -257,7 +280,6 @@ vouchers = dedupeById(vouchers);
 
       updated = dedupeById(updated);
 
-
       if (item.type === "confetti") {
         localStorage.setItem("savedConfetti", JSON.stringify(updated));
       } else {
@@ -281,35 +303,42 @@ vouchers = dedupeById(vouchers);
   }, []);
 
   useEffect(() => {
-  if (!shopDomain) return;
-  if (!savedConfetti.length && !savedVouchers.length) return;
+    if (!shopDomain) return;
 
-  const loadActive = async () => {
-    const res = await fetch(`/api/confetti?shop=${shopDomain}`);
-    const json = await res.json();
+    const loadFromServer = async () => {
+      const res = await fetch(`/api/confetti?shop=${shopDomain}`);
+      const json = await res.json();
 
-    if (!json.success) return;
+      if (!json.success) return;
 
-    const activeIds = json.data.map((c) => c.id);
+      const serverData = json.data;
 
-    setSavedConfetti((prev) =>
-      prev.map((item) => ({
-        ...item,
-        isActive: activeIds.includes(item.id),
-      }))
-    );
+      const confetti = serverData
+        .filter((c) => c.config?.type === "confetti")
+        .map((c) => ({
+          ...c.config,
+          id: c.id,
+          isActive: c.active,
+          trigger: c.triggerEvent?.event,
+          date: c.triggerEvent?.date,
+        }));
 
-    setSavedVouchers((prev) =>
-      prev.map((item) => ({
-        ...item,
-        isActive: activeIds.includes(item.id),
-      }))
-    );
-  };
+      const vouchers = serverData
+        .filter((c) => c.config?.type === "voucher")
+        .map((c) => ({
+          ...c.config,
+          id: c.id,
+          isActive: c.active,
+          trigger: c.triggerEvent?.event,
+          date: c.triggerEvent?.date,
+        }));
 
-  loadActive();
-}, [shopDomain]);
+      setSavedConfetti(confetti);
+      setSavedVouchers(vouchers);
+    };
 
+    loadFromServer();
+  }, [shopDomain]);
 
   // -------------------------------------------------------------
   // 🟧 8) ACTIVATE LOGIC — ENFORCE “ONE ACTIVE PER TYPE + TRIGGER”

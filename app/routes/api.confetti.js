@@ -14,24 +14,20 @@ export const loader = async ({ request }) => {
     });
   }
 
-  const activeConfigs = await prisma.confettiConfig.findMany({
-    where: {
-      shopDomain: shop,
-      active: true,
-    },
+  const configs = await prisma.confettiConfig.findMany({
+    where: { shopDomain: shop },
   });
 
   return new Response(
     JSON.stringify({
       success: true,
-      data: activeConfigs,
+      data: configs,
     }),
     {
       headers: { "Content-Type": "application/json" },
-    }
+    },
   );
 };
-
 
 /**
  * POST /api/confetti
@@ -65,34 +61,26 @@ export const action = async ({ request }) => {
       });
     }
 
-    // STEP 2: create or update confetti config
-    let record = await prisma.confettiConfig.findUnique({
+    await prisma.confettiConfig.upsert({
       where: { id: confettiId },
+      update: {
+        active: true,
+        config,
+        triggerEvent,
+        title: config.title,
+        type: config.type,
+      },
+      create: {
+        id: confettiId,
+        shopDomain: session.shop,
+        shopId: shop.id, // ⭐ REQUIRED (THIS WAS MISSING)
+        title: config.title,
+        type: config.type || "confetti",
+        config,
+        triggerEvent,
+        active: true,
+      },
     });
-
-    if (!record) {
-      record = await prisma.confettiConfig.create({
-        data: {
-          id: confettiId,
-          shopDomain: session.shop,
-          shopId: shop.id,
-          title: config.title,
-          type: config.type,
-          config,
-          triggerEvent,
-          active: true,
-        },
-      });
-    } else {
-      record = await prisma.confettiConfig.update({
-        where: { id: confettiId },
-        data: {
-          active: true,
-          config,
-          triggerEvent,
-        },
-      });
-    }
 
     // STEP 3: get Shopify shop id
     const shopRes = await admin.graphql(`{ shop { id } }`);

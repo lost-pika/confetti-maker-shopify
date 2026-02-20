@@ -252,10 +252,16 @@ export default function ConfettiApp() {
   // -------------------------------------------------------------
   // 🟧 7) SAVE DRAFT (NO DUPLICATES)
   // -------------------------------------------------------------
-  const saveDraft = () => {
+  const saveDraft = async () => {
     if (!activeConfig) return null;
 
     const item = activeConfig;
+
+    const isActive =
+      item.type === "confetti"
+        ? savedConfetti.some((i) => i.id === item.id && i.isActive)
+        : savedVouchers.some((i) => i.id === item.id && i.isActive);
+
     const setter =
       item.type === "confetti" ? setSavedConfetti : setSavedVouchers;
 
@@ -267,27 +273,19 @@ export default function ConfettiApp() {
       if (exists) {
         updated = prev.map((i) => (i.id === item.id ? { ...i, ...item } : i));
       } else {
-        updated = [
-          {
-            ...item,
-            isActive: false,
-            isPredefined: false,
-            createdAt: "Just now",
-          },
-          ...prev,
-        ];
-      }
-
-      updated = dedupeById(updated);
-
-      if (item.type === "confetti") {
-        localStorage.setItem("savedConfetti", JSON.stringify(updated));
-      } else {
-        localStorage.setItem("savedVouchers", JSON.stringify(updated));
+        updated = [{ ...item }, ...prev];
       }
 
       return updated;
     });
+
+    // ⭐ THIS FIXES STORE FRONT
+    if (isActive) {
+      await activateConfetti(item, {
+        event: item.trigger || "page_load",
+        date: item.date || null,
+      });
+    }
 
     setView("dashboard");
     return item;

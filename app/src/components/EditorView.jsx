@@ -62,37 +62,36 @@ export default function EditorView({
       : savedVouchers.some((i) => i.id === activeConfig.id && i.isActive);
 
   const handleTest = async () => {
-  await ensureConfettiLoaded();
+    await ensureConfettiLoaded();
 
-  // Extract values with safe fallbacks
-  const {
-    particleCount = 200,
-    spread = 90,
-    gravity = 1.0,
-    shapes = ["circle"],
-    colors = ["#FFB396"],
-    burstType = "cannon",
-  } = activeConfig;
+    // Extract values with safe fallbacks
+    const {
+      particleCount = 200,
+      spread = 90,
+      gravity = 1.0,
+      shapes = ["circle"],
+      colors = ["#FFB396"],
+      burstType = "cannon",
+    } = activeConfig;
 
-  // OLD working payload
-  const payload = {
-    particleCount,
-    spread,
-    gravity,
-    burstType,
-    colors,
-    shapes: shapes.length ? shapes : ["circle"],
+    // OLD working payload
+    const payload = {
+      particleCount,
+      spread,
+      gravity,
+      burstType,
+      colors,
+      shapes: shapes.length ? shapes : ["circle"],
 
-    // REQUIRED defaults (old code used these always)
-    origin: { x: 0.5, y: 0.6 },
-    startVelocity: 45,
-    decay: 0.9,
-    drift: 0,
+      // REQUIRED defaults (old code used these always)
+      origin: { x: 0.5, y: 0.6 },
+      startVelocity: 45,
+      decay: 0.9,
+      drift: 0,
+    };
+
+    fire(payload);
   };
-
-  fire(payload);
-};
-
 
   return (
     <div className="flex h-screen w-full bg-[#F8FAFC] text-slate-900 overflow-hidden font-sans">
